@@ -1,0 +1,24 @@
+# Configuración Centralizada del Framework LWE Modular Projection (v1.0)
+
+q: 3329
+eta: 2
+default_modulus: 6
+
+m_values:
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 8
+  - 12
+
+experiments:
+  trials: 10000
+  confidence_interval: 0.95
+  seed: 42
+  sample_scaling_N:
+    - 1000
+    - 10000
+    - 100000
+    - 1000000

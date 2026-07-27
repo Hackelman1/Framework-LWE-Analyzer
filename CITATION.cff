@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software or manuscript, please cite it as below."
+authors:
+  - family-names: "Peinador"
+    given-names: "Ricardo"
+title: "Modular Projection Effects and Implementation Audit in LWE and ML-KEM"
+version: 1.0.0
+date-released: 2026-07-27
+url: "https://github.com/framework-lwe/modular-projection"
+keywords:
+  - LWE
+  - ML-KEM
+  - Kyber
+  - Lattice-Based Cryptography
+  - Modular Projection
+  - Circular Convolution
+  - Statistical Audit
+  - Post-Quantum Cryptography
