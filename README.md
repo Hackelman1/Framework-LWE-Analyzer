@@ -1,8 +1,11 @@
+**Español** | [English](README_ENG.md)
+
 # Framework de Evaluación y Auditoría Estadística de LWE / ML-KEM (Release v1.0)
 [![DOI](https://zenodo.org/badge/1313642539.svg)](https://doi.org/10.5281/zenodo.21622274)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Release v1.0](https://img.shields.io/badge/release-v1.0.0-green.svg)](https://github.com/framework-lwe/modular-projection)
+
 
 Release oficial v1.0.0 del framework teórico y experimental para el análisis de uniformización estadística de ruido en Learning With Errors (LWE), Ring-LWE, Module-LWE y auditoría de transformaciones reales de implementación en **ML-KEM / Kyber (FIPS 203)**.
 
