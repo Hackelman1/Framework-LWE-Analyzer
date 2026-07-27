@@ -105,8 +105,8 @@ analyze_scheme(scheme="Kyber512", transformation="compression", parameters={"d":
 ## 7. Cita
 
 ```bibtex
-@software{Peinador_LWE_MLKEM_Audit_2026,
-  author = {Peinador, Ricardo},
+@software{Hackelman_LWE_MLKEM_Audit_2026,
+  author = {Hackelman},
   title = {Modular Projection Effects and Implementation Audit in LWE and ML-KEM},
   year = {2026},
   version = {1.0.0},
