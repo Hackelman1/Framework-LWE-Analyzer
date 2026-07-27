@@ -16,6 +16,10 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
 
+    # Inyectamos PYTHONPATH para que las importaciones locales de src/ funcionen siempre
+    env:
+      PYTHONPATH: .
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -34,7 +38,7 @@ jobs:
 
     - name: Run unit test suite
       run: |
-        pytest tests/ -v --disable-warnings
+        python -m pytest tests/ -v --disable-warnings
 
     - name: Smoke test (Auditor Interface)
       run: |
