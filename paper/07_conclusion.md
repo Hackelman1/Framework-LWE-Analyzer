@@ -1,9 +1,10 @@
-# 07. Conclusiones
+# 07. Conclusiones y Trabajo Futuro
 
-Este trabajo ha caracterizado formalmente el fenómeno de uniformización del ruido en proyecciones LWE $\mathbb{Z}_q \to \mathbb{Z}_m$:
+Este trabajo ha caracterizado formalmente el fenómeno de uniformización del ruido en proyecciones LWE $\mathbb{Z}_q \to \mathbb{Z}_m$ y ha extendido su metodología hacia la auditoría estadística de las transformaciones de implementación en los estándares de criptografía post-cuántica **ML-KEM (FIPS 203)** y **ML-DSA (FIPS 204)**:
 
-1. **Condición Algebraica**: Se requiere que $\gcd(q, m) = 1$, lo que garantiza que el subgrupo aditivo generado $G(q,m) = \langle q \rangle = \mathbb{Z}_m$ tenga soporte completo de tamaño $m$.
-2. **Condición Probabilística**: El cociente de envoltorio $k = \lfloor (A s + e)/q \rfloor \bmod m$ actúa como una máscara estocástica tipo *one-time pad* independiente del secreto.
-3. **Cota de Convolución**: La convolución circular discreta $P(e \bmod m) \circledast P(k q \bmod m)$ acota la distancia de variación total por la distancia del envoltorio a la uniforme: $\delta(P(e_{\text{efectivo}}), U) \le \delta(P(k q \bmod m), U)$.
+1. **Condición Algebraica de Uniformización**: Se requiere que $\gcd(q, m) = 1$, lo que garantiza que el subgrupo aditivo generado $G(q,m) = \langle q \rangle = \mathbb{Z}_m$ tenga soporte completo de tamaño $m$.
+2. **Mecanismo de Envolvente Modular**: El cociente de envoltorio $k = \lfloor (A s + e)/q \rfloor \bmod m$ actúa como una máscara estocástica tipo *one-time pad* independiente del secreto, demostrando que la uniformización es producida intrínsecamente por la dinámica modular y ocurre incluso en ausencia de ruido original ($e = 0$).
+3. **Cota de Convolución Discreta**: La convolución circular $P(e \bmod m) \circledast P(k q \bmod m)$ acota la distancia de variación total del ruido efectivo por la distancia del envoltorio a la distribución uniforme: $\delta(P(e_{\text{efectivo}}), U) \le \delta(P(k q \bmod m), U)$.
+4. **Auditoría Integral de ML-DSA (FIPS 204)**: La evaluación experimental profunda con $N = 500,000$ muestras y corrección de Miller-Madow confirma que el residuo de compromiso ($r_0$ en `Decompose`), el residuo truncado de clave pública ($t_0$ en `Power2Round`) y el vector binario de pistas públicas ($h$ en `MakeHint`) preservan una independencia estadística estricta respecto a las claves secretas $S_1$ y $S_2$, alcanzando una información mutua de $I(S; \text{Salida}) \approx 0.000000$ bits y superando holgadamente los criterios de uniformidad ($\chi^2 p\text{-valor} > 0.16$).
 
-Estos hallazgos cierran la caracterización matemática de las proyecciones modulares en la teoría de errores LWE.
+Estos hallazgos cierran la caracterización matemática de las proyecciones modulares en LWE y establecen un marco riguroso y automatizado para auditar que las transformaciones de implementación reales en estándares PQC no introduzcan fugas de información estadística sobre el secreto.
