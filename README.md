@@ -23,6 +23,10 @@ Release oficial v1.0.0 del framework teórico y experimental para el análisis d
    - Reducción modular real e imprecisa (`exact` vs `biased`).
    - Empaquetamiento de bits/bytes (`coefficient_pack/unpack`).
    - **Conclusión de Auditoría**: Las transformaciones de implementación preservan la independencia estadística del ruido y no filtran información mutua sobre el secreto ($I(S; \text{Salida}) \approx 0.0000$ bits).
+5. **Auditoría de Funciones de Redondeo y Descomposición en ML-DSA / Dilithium (FIPS 204)**:
+   - **`Decompose`**: Verificación empírica de que el residuo de parte baja $r_0 \in [-\gamma_2, \gamma_2]$ generado durante la firma no filtra información sobre la clave secreta $S_1$ ($I(S_1; r_0) = 0.000000$ bits) tanto para ML-DSA-44 ($\gamma_2 = 95232$) como para ML-DSA-65/87 ($\gamma_2 = 261888$).
+   - **`Power2Round`**: Demostración de que el residuo truncado de la clave pública $t_0 \in [-4095, 4096]$ ($d=13$) actúa como ruido discreto uniforme de $13$ bits, sin revelar información mutua apreciable respecto a $S_1$ ni $S_2$ ($I(S; t_0) \le 0.0031$ bits) y superando la prueba de ajuste de Chi-Cuadrado ($\chi^2 p\text{-valor} > 0.57$).
+
 
 ---
 
@@ -88,9 +92,20 @@ analyze_scheme(scheme="Kyber512", transformation="compression", parameters={"d":
 
 - `final_table.csv`: Dataset unificado de experimentos LWE y proyecciones $Z_q \to Z_m$.
 - `kyber_transform_table.csv`: Dataset de auditoría de transformaciones reales en Kyber512/768/1024.
+- `dsa_transform_table.csv`: Dataset unificado de auditoría para las transformaciones en ML-DSA (FIPS 204).
 - `summary_report.md`: Reporte ejecutivo consolidado con métricas de los experimentos A a W.
 - `final_validation_report.md`: Reporte de validación técnica.
 - `*.png`: Gráficos de robustez, mapas de uniformización y sesgos de compresión/redondeo.
+
+### Resultados de Auditoría ML-DSA (FIPS 204) — Muestra $N = 500,000$
+
+| Esquema | Transformación | Parámetros | Entropía $H$ (bits) | Max $H$ | $\chi^2$ $p$-valor | $I(S_1; \text{out})$ | $I(S_2; \text{out})$ | Estado |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **ML-DSA-44** | `Decompose` | $\gamma_2=95232, \eta=2$ | $17.2347$ | $17.5392$ | $0.4364$ | $0.000000$ | N/A | **PASS** |
+| **ML-DSA-65/87** | `Decompose` | $\gamma_2=261888, \eta=4$ | $18.1350$ | $18.9986$ | $0.1689$ | $0.000000$ | N/A | **PASS** |
+| **ML-DSA-44** | `Power2Round` | $d=13, \eta=2$ | $12.9884$ | $13.0000$ | $0.9207$ | $0.000519$ | $0.001273$ | **PASS** |
+| **ML-DSA-65/87** | `Power2Round` | $d=13, \eta=4$ | $12.9882$ | $13.0000$ | $0.5779$ | $0.002707$ | $0.003116$ | **PASS** |
+
 
 ---
 

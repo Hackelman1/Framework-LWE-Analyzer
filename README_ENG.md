@@ -22,6 +22,10 @@ Official v1.0.0 release of the theoretical and experimental framework for analyz
    - Exact vs. biased modular reduction (`exact` vs. `biased`).
    - Bit and byte packing (`coefficient_pack/unpack`).
    - **Audit Conclusion**: Implementation-level transformations preserve statistical noise independence and do not leak mutual information about the secret key ($I(S; \text{Output}) \approx 0.0000$ bits).
+5. **Audit of Rounding and Decomposition Functions in ML-DSA / Dilithium (FIPS 204)**:
+   - **`Decompose`**: Empirical verification that the low-part residue $r_0 \in [-\gamma_2, \gamma_2]$ generated during signing leaks no information about the secret key $S_1$ ($I(S_1; r_0) = 0.000000$ bits) for both ML-DSA-44 ($\gamma_2 = 95232$) and ML-DSA-65/87 ($\gamma_2 = 261888$).
+   - **`Power2Round`**: Demonstration that the truncated public key residue $t_0 \in [-4095, 4096]$ ($d=13$) behaves as 13-bit discrete uniform noise, revealing no negligible mutual information regarding $S_1$ or $S_2$ ($I(S; t_0) \le 0.0031$ bits) and passing the Chi-Square goodness-of-fit test ($\chi^2 p\text{-value} > 0.57$).
+
 
 ---
 
@@ -88,9 +92,20 @@ analyze_scheme(scheme="Kyber512", transformation="compression", parameters={"d":
 
 - `final_table.csv`: Unified dataset for LWE $Z_q \to Z_m$ projection experiments.
 - `kyber_transform_table.csv`: Audit dataset for real implementation transformations in Kyber512/768/1024.
+- `dsa_transform_table.csv`: Unified audit dataset for transformations in ML-DSA (FIPS 204).
 - `summary_report.md`: Consolidated executive report with metrics for Experiments A to W.
 - `final_validation_report.md`: Technical validation report.
 - `*.png`: Robustness plots, uniformization heatmaps, and compression/rounding bias figures.
+
+### ML-DSA (FIPS 204) Statistical Audit Results — Sample $N = 500,000$
+
+| Scheme | Transformation | Parameters | Entropy $H$ (bits) | Max $H$ | $\chi^2$ $p$-value | $I(S_1; \text{out})$ | $I(S_2; \text{out})$ | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **ML-DSA-44** | `Decompose` | $\gamma_2=95232, \eta=2$ | $17.2347$ | $17.5392$ | $0.4364$ | $0.000000$ | N/A | **PASS** |
+| **ML-DSA-65/87** | `Decompose` | $\gamma_2=261888, \eta=4$ | $18.1350$ | $18.9986$ | $0.1689$ | $0.000000$ | N/A | **PASS** |
+| **ML-DSA-44** | `Power2Round` | $d=13, \eta=2$ | $12.9884$ | $13.0000$ | $0.9207$ | $0.000519$ | $0.001273$ | **PASS** |
+| **ML-DSA-65/87** | `Power2Round` | $d=13, \eta=4$ | $12.9882$ | $13.0000$ | $0.5779$ | $0.002707$ | $0.003116$ | **PASS** |
+
 
 ---
 
