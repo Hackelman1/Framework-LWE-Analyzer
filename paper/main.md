@@ -1,6 +1,6 @@
 # Modular Projection Effects in LWE: Algebraic Conditions for Statistical Noise Uniformization and Implementation Auditing in ML-KEM and ML-DSA
 
-**Author**: Ricardo Peinador  
+**Author**: Hackelman  
 **Date**: July 28, 2026  
 **Classification**: Mathematical Cryptography / Lattice-Based Cryptography / Applied Stochastics  
 
