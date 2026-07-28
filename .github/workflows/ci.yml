@@ -1,4 +1,4 @@
-name: CI / Framework LWE Analyzer
+name: CI / pqc-statistical-auditor
 
 on:
   push:
