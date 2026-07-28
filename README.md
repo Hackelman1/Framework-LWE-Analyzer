@@ -4,7 +4,8 @@
 [![DOI](https://zenodo.org/badge/1313642539.svg)](https://doi.org/10.5281/zenodo.21622274)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Release v1.0](https://img.shields.io/badge/release-v1.0.0-green.svg)](https://github.com/framework-lwe/modular-projection)
+[![Release v1.0](https://img.shields.io/badge/release-v1.0.0-green.svg)](https://github.com/Hackelman1/Framework-LWE-Analyzer)
+
 
 
 Release oficial v1.0.0 del framework teórico y experimental para el análisis de uniformización estadística de ruido en Learning With Errors (LWE), Ring-LWE, Module-LWE y auditoría de transformaciones reales de implementación en **ML-KEM / Kyber (FIPS 203)**.
@@ -49,6 +50,7 @@ Framework-LWE-Analyzer/
 ├── run_all_experiments.py       # Punto de entrada único para los 23 experimentos (A a W)
 ├── auditor.py                   # Interfaz principal de auditoría estadística
 ├── README.md
+├── README_ENG.md
 ├── CHANGELOG.md
 ├── requirements.txt
 ├── LICENSE
@@ -60,8 +62,8 @@ Framework-LWE-Analyzer/
 ## 3. Instalación
 
 ```bash
-git clone https://github.com/framework-lwe/modular-projection.git
-cd modular-projection
+git clone https://github.com/Hackelman1/Framework-LWE-Analyzer.git
+cd Framework-LWE-Analyzer
 pip install -r requirements.txt
 ```
 
@@ -113,7 +115,7 @@ analyze_scheme(scheme="Kyber512", transformation="compression", parameters={"d":
 
 - **SÍ Demuestra**:
   - Que las proyecciones modulares con $\gcd(q, m) = 1$ destruyen la estructura estadística observada del ruido en LWE y ML-KEM.
-  - Que las transformaciones reales de compresión, redondeo y serialización en Kyber conservan una alta uniformidad y no aportan ventaja estadística al atacante.
+  - Que las transformaciones reales de compresión, redondeo y descomposiciones en Kyber y ML-DSA conservan una alta uniformidad y no aportan ventaja estadística al atacante.
 - **NO Demuestra**:
   - Una ruptura de la seguridad criptográfica de ML-KEM / Kyber (FIPS 203).
   - Vulnerabilidades de canal lateral físico (SPA/DPA) fuera del modelo estadístico de datos.
@@ -128,7 +130,7 @@ analyze_scheme(scheme="Kyber512", transformation="compression", parameters={"d":
   title = {Modular Projection Effects and Implementation Audit in LWE and ML-KEM},
   year = {2026},
   version = {1.0.0},
-  url = {https://github.com/framework-lwe/modular-projection}
+  url = {https://github.com/Hackelman1/Framework-LWE-Analyzer}
 }
 ```
 

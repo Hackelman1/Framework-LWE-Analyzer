@@ -4,7 +4,8 @@
 [![DOI](https://zenodo.org/badge/1313642539.svg)](https://doi.org/10.5281/zenodo.21622274)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Release v1.0](https://img.shields.io/badge/release-v1.0.0-green.svg)](https://github.com/framework-lwe/modular-projection)
+[![Release v1.0](https://img.shields.io/badge/release-v1.0.0-green.svg)](https://github.com/Hackelman1/Framework-LWE-Analyzer)
+
 
 Official v1.0.0 release of the theoretical and experimental framework for analyzing statistical noise uniformization in Learning With Errors (LWE), Ring-LWE, Module-LWE, and auditing real implementation-level transformations in **ML-KEM / Kyber (FIPS 203)**.
 
@@ -113,7 +114,7 @@ analyze_scheme(scheme="Kyber512", transformation="compression", parameters={"d":
 
 - **DOES Prove**:
   - Modular projections with $\gcd(q, m) = 1$ destroy the observable statistical structure of LWE and ML-KEM error terms.
-  - Real implementation transformations of compression, rounding, and byte serialization in Kyber preserve high uniformity and afford no statistical advantage to an adversary.
+  - Real implementation transformations of compression, rounding, and decompositions in Kyber and ML-DSA preserve high uniformity and afford no statistical advantage to an adversary.
 - **DOES NOT Prove**:
   - Any cryptographic security break or key recovery vulnerability in standardized ML-KEM / Kyber (FIPS 203).
   - Physical side-channel vulnerabilities (SPA/DPA/EMA) outside the data-level statistical noise model.
