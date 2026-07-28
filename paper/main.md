@@ -116,11 +116,11 @@ To eliminate finite-sample bias when auditing large discrete state spaces ($|R_0
 
 The raw mutual information $I_{\text{plugin}}$ is corrected using the Miller-Madow analytical bias expressed in **bits**:
 
-$$I_{\text{MM\_raw}} = I_{\text{plugin}}(S; Y) - \frac{K_{XY} - K_X - K_Y + 1}{2 N \ln 2}$$
+$$I_{\text{MM, raw}} = I_{\text{plugin}}(S; Y) - \frac{K_{XY} - K_X - K_Y + 1}{2 N \ln 2}$$
 
 Permutation hypothesis tests are conducted on the $B = 256$ binned representation over $P = 500$ random iterations (using seed $= 42$ for strict reproducibility). Add-one smoothed empirical $p$-values are computed via Phipson & Smyth (2010):
 
-$$p = \frac{1 + \sum_{i=1}^P \mathbb{I}\left(I_{\text{null\_raw}}^{(i)} \ge I_{\text{MM\_raw}}\right)}{P + 1}$$
+$$p = \frac{1 + \sum_{i=1}^P \mathbb{I}\left(I_{\text{null, raw}}^{(i)} \ge I_{\text{MM, raw}}\right)}{P + 1}$$
 
 ### 7.2 Multiplicity Control, Internal Bonferroni Sweep Aggregation, and FDR Convergence
 We strictly separate statistical tests into two independent hypothesis families:
