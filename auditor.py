@@ -43,7 +43,7 @@ class SchemeAuditor:
             if transformation == "compression":
                 audit_res = auditor.audit_compression_bias(d=d, trials=trials)
             elif transformation == "rounding":
-                audit_res = audit_res = auditor.audit_rounding_bias(d=d, trials=trials)
+                audit_res = auditor.audit_rounding_bias(d=d, trials=trials)
             elif transformation == "modular_reduction":
                 audit_res = auditor.audit_modular_reduction(trials=trials, reduction_type=red_type)
             elif transformation == "pack_unpack":

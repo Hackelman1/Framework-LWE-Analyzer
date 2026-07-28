@@ -108,20 +108,30 @@ def audit_decompose_transformation(q: int = 8380417, gamma2: int = 95232, eta: i
     else:
         interpretation = f"WARNING: Observable leakage or non-uniformity detected in low-part r0 (MI={mi_corrected:.6f} bits, p={float(p_val):.4f}) [FAIL]"
 
+    status_str = "PASS" if is_safe else "FAIL"
+    param_str = f"gamma2={gamma2}, eta={eta}"
+
     result_dict = {
         'scheme': scheme_name,
+        'function': 'Decompose',
         'transformation': 'Decompose',
+        'parameter': param_str,
         'q': int(q),
         'gamma2': int(gamma2),
         'eta': int(eta),
-        'num_samples': int(num_samples),
-        'entropy_r0': h_r0,
-        'max_entropy': max_h,
-        'tvd': tvd,
+        'entropy_bits': float(h_r0),
+        'entropy_r0': float(h_r0),
+        'max_entropy_bits': float(max_h),
+        'max_entropy': float(max_h),
+        'tvd': float(tvd),
         'chi2_stat': float(chi2_stat),
         'chi2_pvalue': float(p_val),
-        'mutual_information': mi_corrected,
+        'mutual_info_s1': float(mi_corrected),
+        'mutual_info_s2': 0.0,
+        'mutual_information': float(mi_corrected),
+        'status': status_str,
         'is_safe': is_safe,
+        'num_samples': int(num_samples),
         'interpretation': interpretation
     }
 
@@ -132,9 +142,25 @@ def audit_decompose_transformation(q: int = 8380417, gamma2: int = 95232, eta: i
         results_dir.mkdir(parents=True, exist_ok=True)
         csv_path = results_dir / "dsa_transform_table.csv"
 
-        df_row = pd.DataFrame([result_dict])
-        file_exists = csv_path.exists()
-        df_row.to_csv(csv_path, mode='a', header=not file_exists, index=False)
+        csv_columns = [
+            'scheme', 'function', 'parameter', 'entropy_bits', 'max_entropy_bits',
+            'tvd', 'chi2_pvalue', 'mutual_info_s1', 'mutual_info_s2', 'status', 'num_samples'
+        ]
+
+        row_data = {col: result_dict[col] for col in csv_columns if col in result_dict}
+        df_row = pd.DataFrame([row_data])
+
+        if csv_path.exists():
+            try:
+                existing_df = pd.read_csv(csv_path)
+                combined_df = pd.concat([existing_df, df_row], ignore_index=True)
+                combined_df.to_csv(csv_path, index=False)
+            except Exception:
+                df_row.to_csv(csv_path, mode='a', header=False, index=False)
+        else:
+            df_row.to_csv(csv_path, mode='w', header=True, index=False)
+
         print(f"SUCCESS: Resultado de auditoría ML-DSA guardado en '{csv_path}'")
 
     return result_dict
+
