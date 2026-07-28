@@ -6,7 +6,7 @@ authors:
 title: "Modular Projection Effects and Implementation Audit in LWE and ML-KEM"
 version: 1.0.0
 date-released: 2026-07-27
-url: "https://github.com/framework-lwe/modular-projection"
+url: "https://github.com/Hackelman1/pqc-statistical-auditor"
 doi: "10.5281/zenodo.21622275"
 keywords:
   - LWE

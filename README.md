@@ -4,7 +4,7 @@
 [![DOI](https://zenodo.org/badge/1313642539.svg)](https://doi.org/10.5281/zenodo.21622274)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Release v2.0.0](https://img.shields.io/badge/release-v2.0.0-green.svg)](https://github.com/Hackelman1/Framework-LWE-Analyzer)
+[![Release v2.0.0](https://img.shields.io/badge/release-v2.0.0-green.svg)](https://github.com/Hackelman1/pqc-statistical-auditor)
 
 
 Release oficial v2.0.0 del framework teórico y experimental para el análisis de uniformización estadística de ruido en Learning With Errors (LWE), Ring-LWE, Module-LWE y auditoría estadística integral de transformaciones reales de implementación en **ML-KEM (FIPS 203)** y **ML-DSA (FIPS 204)**.
@@ -33,7 +33,7 @@ Release oficial v2.0.0 del framework teórico y experimental para el análisis d
 ## 2. Estructura del Repositorio
 
 ```
-Framework-LWE-Analyzer/
+pqc-statistical-auditor/
 ├── src/                         # Módulos centrales de generación, proyección y ataques
 ├── schemes/                     # Definición de parámetros e instancias (Module-LWE / Kyber)
 │   └── module_lwe/              # Kyber512, Kyber768, Kyber1024 y KyberTransformAuditor
@@ -62,8 +62,8 @@ Framework-LWE-Analyzer/
 ## 3. Instalación
 
 ```bash
-git clone https://github.com/Hackelman1/Framework-LWE-Analyzer.git
-cd Framework-LWE-Analyzer
+git clone https://github.com/Hackelman1/pqc-statistical-auditor.git
+cd pqc-statistical-auditor
 pip install -r requirements.txt
 ```
 
@@ -131,7 +131,7 @@ analyze_scheme(scheme="Kyber512", transformation="compression", parameters={"d":
   title = {Modular Projection Effects and Implementation Audit in LWE, ML-KEM, and ML-DSA},
   year = {2026},
   version = {2.0.0},
-  url = {https://github.com/Hackelman1/Framework-LWE-Analyzer}
+  url = {https://github.com/Hackelman1/pqc-statistical-auditor}
 }
 ```
 
