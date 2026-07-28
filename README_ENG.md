@@ -126,12 +126,12 @@ analyze_scheme(scheme="Kyber512", transformation="compression", parameters={"d":
 ## 7. Citation
 
 ```bibtex
-@software{Hackelman_LWE_MLKEM_MLDSA_Audit_2026,
-  author = {Hackelman},
+@software{Peinador_PQC_Statistical_Auditor_2026,
+  author = {Peinador, Ricardo},
   title = {Modular Projection Effects and Implementation Audit in LWE, ML-KEM, and ML-DSA},
   year = {2026},
   version = {2.0.0},
-  url = {https://github.com/Hackelman1/pqc-statistical-auditor}
+  url = {https://github.com/pqc-statistical-auditor/pqc-statistical-auditor}
 }
 ```
 

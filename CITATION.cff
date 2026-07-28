@@ -1,19 +1,10 @@
 cff-version: 1.2.0
-message: "If you use this software or manuscript, please cite it as below."
+message: "If you use this software, please cite it as below."
 authors:
-  - family-names: ""
-    given-names: "Hackelman"
-title: "Modular Projection Effects and Implementation Audit in LWE and ML-KEM"
-version: 1.0.0
-date-released: 2026-07-27
-url: "https://github.com/Hackelman1/pqc-statistical-auditor"
-doi: "10.5281/zenodo.21622275"
-keywords:
-  - LWE
-  - ML-KEM
-  - Kyber
-  - Lattice-Based Cryptography
-  - Modular Projection
-  - Circular Convolution
-  - Statistical Audit
-  - Post-Quantum Cryptography
+  - family-names: "Peinador"
+    given-names: "Ricardo"
+title: "Modular Projection Effects in LWE, ML-KEM, and ML-DSA Implementation Audit"
+version: 2.0.0
+doi: 10.5281/zenodo.21622274
+date-released: 2026-07-28
+url: "https://github.com/pqc-statistical-auditor/pqc-statistical-auditor"

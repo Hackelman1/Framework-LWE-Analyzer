@@ -38,13 +38,8 @@ def rebuild_all():
     required_files = [
         "final_table.csv",
         "kyber_transform_table.csv",
-        "summary_report.md",
-        "final_validation_report.md",
-        "exp_l_secret_robustness.png",
-        "exp_m_noise_robustness.png",
-        "exp_r_kyber_map.png",
-        "exp_t_compression_bias.png",
-        "exp_u_rounding_noise.png"
+        "dsa_transform_table.csv",
+        "summary_report.md"
     ]
 
     missing = []
