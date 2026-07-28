@@ -109,10 +109,18 @@ def audit_power2round_transformation(q: int = 8380417, d: int = 13, eta: int = 2
     mi_s1 = _compute_corrected_mutual_info(s1, t0_idx, K, num_samples)
     mi_s2 = _compute_corrected_mutual_info(s2, t0_idx, K, num_samples)
 
-    # 4. Criterio de Aceptación (Pass/Fail)
+    # 4. Criterio de Aceptación (Pass/Fail) e Información Mutua Robusta
+    from transformations.dsa.audit_utils import compute_mutual_information_robust
+    mi_stats = compute_mutual_information_robust(
+        s_vec=s1,
+        out_vec=t0_idx,
+        num_bins=min(256, K),
+        n_permutations=500 if num_samples >= 10000 else 50,
+        seed=seed
+    )
+
     mi_threshold = 5e-3 if num_samples >= 500000 else 0.05
     p_val_ok = (p_val > 0.01) or (num_samples < 50000)
-
 
     is_safe = bool((mi_s1 < mi_threshold) and (mi_s2 < mi_threshold) and p_val_ok)
     scheme_name = "ML-DSA-44" if eta == 2 else "ML-DSA-65/87"
@@ -140,12 +148,15 @@ def audit_power2round_transformation(q: int = 8380417, d: int = 13, eta: int = 2
         'entropy_t0': h_t0,
         'max_entropy_bits': max_h,
         'max_entropy': max_h,
-        'tvd': tvd,
+        'tvd': float(tvd),
         'chi2_stat': float(chi2_stat),
         'chi2_pvalue': float(p_val),
-        'mutual_info_s1': mi_s1,
-        'mutual_info_s2': mi_s2,
-        'mutual_information': max(mi_s1, mi_s2),
+        'chi2_p_value': float(p_val),
+        'empirical_p_value': mi_stats['empirical_p_value'],
+        'mi_mm_display': mi_stats['mi_mm_display'],
+        'mutual_info_s1': float(mi_s1),
+        'mutual_info_s2': float(mi_s2),
+        'mutual_information': float(max(mi_s1, mi_s2)),
         'status': status_str,
         'is_safe': is_safe,
         'num_samples': int(num_samples),

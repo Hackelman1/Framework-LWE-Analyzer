@@ -99,7 +99,16 @@ def audit_decompose_transformation(q: int = 8380417, gamma2: int = 95232, eta: i
 
 
 
-    # 4. Criterio de Aceptación (Pass/Fail)
+    # 4. Información Mutua Robusta con Permutaciones
+    from transformations.dsa.audit_utils import compute_mutual_information_robust
+    mi_stats = compute_mutual_information_robust(
+        s_vec=s1,
+        out_vec=r0_idx,
+        num_bins=min(256, K),
+        n_permutations=500 if num_samples >= 10000 else 50,
+        seed=seed
+    )
+
     is_safe = bool((mi_corrected < 1e-3) and (p_val > 0.01))
     
     scheme_name = f"ML-DSA-44" if gamma2 == 95232 else f"ML-DSA-65/87"
@@ -126,6 +135,9 @@ def audit_decompose_transformation(q: int = 8380417, gamma2: int = 95232, eta: i
         'tvd': float(tvd),
         'chi2_stat': float(chi2_stat),
         'chi2_pvalue': float(p_val),
+        'chi2_p_value': float(p_val),
+        'empirical_p_value': mi_stats['empirical_p_value'],
+        'mi_mm_display': mi_stats['mi_mm_display'],
         'mutual_info_s1': float(mi_corrected),
         'mutual_info_s2': 0.0,
         'mutual_information': float(mi_corrected),

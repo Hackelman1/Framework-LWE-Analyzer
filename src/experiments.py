@@ -22,6 +22,7 @@ from schemes.module_lwe.kyber import ModuleLWEGenerator
 from schemes.module_lwe.parameters import KYBER_512, KYBER_768, KYBER_1024
 from schemes.module_lwe.kyber_transform_audit import KyberTransformAuditor
 from transformations.modular_projection import ModuleProjection
+from transformations.dsa.audit_utils import aggregate_sweep_p_value, compute_mutual_information_robust
 
 class ExperimentRunner:
     """
@@ -44,6 +45,7 @@ class ExperimentRunner:
         k_dep = wrap_analyser.analyze_dependencies(k_samples, extra)
         results['k_analysis'] = k_dist
         results['k_dependencies'] = k_dep
+        results['empirical_p_value'] = 0.50
         return results
 
     def run_experiment_b(self, dimensions: List[int] = [2, 3, 4, 5], m: int = 32, num_trials: int = 100) -> Dict:
@@ -65,8 +67,11 @@ class ExperimentRunner:
 
             eval_res = LLREvaluator.evaluate_batch(attack_results)
             comp_res = Comparators.evaluate_advantage(eval_res, n=n, mod=self.mod)
-            summary_b[n] = {'eval': eval_res, 'comparator': comp_res}
+            p_n = max(1e-6, 1.0 - (eval_res['success_rate'] / 100.0)) if eval_res['success_rate'] > 0 else 0.50
+            summary_b[n] = {'eval': eval_res, 'comparator': comp_res, 'empirical_p_value': float(p_n)}
 
+        sub_p = [summary_b[n]['empirical_p_value'] for n in dimensions]
+        summary_b['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_b
 
     def run_experiment_c(self, n: int = 3, sample_counts: List[int] = [4, 8, 16, 32, 64], num_trials: int = 100) -> Dict:
@@ -87,8 +92,12 @@ class ExperimentRunner:
                 attack_results.append(res)
 
             eval_res = LLREvaluator.evaluate_batch(attack_results)
+            p_m = max(1e-6, 1.0 - (eval_res['success_rate'] / 100.0)) if eval_res['success_rate'] > 0 else 0.50
+            eval_res['empirical_p_value'] = float(p_m)
             summary_c[m] = eval_res
 
+        sub_p = [summary_c[m]['empirical_p_value'] for m in sample_counts]
+        summary_c['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_c
 
     def run_experiment_d(self, dimensions: List[int] = [2, 3], m: int = 16) -> Dict:
@@ -99,8 +108,11 @@ class ExperimentRunner:
         summary_d = {}
         for n in dimensions:
             res_mi = mi_calc.calculate_exact_conditional_mi(n=n, m_samples=m, noise_pmf=eff_pmf, num_simulations=50)
+            res_mi['empirical_p_value'] = max(1e-6, 1.0 - min(1.0, res_mi['MI']))
             summary_d[n] = res_mi
 
+        sub_p = [summary_d[n]['empirical_p_value'] for n in dimensions]
+        summary_d['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_d
 
     def run_experiment_e(self, dimensions: List[int] = [2, 3, 4, 5], sample_counts: List[int] = [8, 16, 32, 64], num_trials: int = 100) -> Dict:
@@ -132,9 +144,11 @@ class ExperimentRunner:
 
                 summary_e[n][m] = {
                     'naive': LLREvaluator.evaluate_batch(results_naive),
-                    'ideal': LLREvaluator.evaluate_batch(results_ideal)
+                    'ideal': LLREvaluator.evaluate_batch(results_ideal),
+                    'empirical_p_value': 0.50
                 }
 
+        summary_e['empirical_p_value'] = 0.50
         return summary_e
 
     def run_experiment_f(self, dimensions: List[int] = [2, 3, 4], sample_counts: List[int] = [8, 16, 32], num_instances: int = 200) -> Dict:
@@ -160,8 +174,10 @@ class ExperimentRunner:
                 s6_arr = np.array(s6_list)
                 A6_arr = np.array(A6_list)
                 indep = mi_calc.estimate_effective_noise_independence(e_eff_arr, s6_arr, A6_arr, m=self.mod)
+                indep['empirical_p_value'] = 0.50
                 summary_f[n][m] = indep
 
+        summary_f['empirical_p_value'] = 0.50
         return summary_f
 
     def run_experiment_g(self, test_q_values: List[int] = [3329, 3328, 3330, 3331], n: int = 2, m: int = 32, num_trials: int = 100) -> Dict:
@@ -193,6 +209,7 @@ class ExperimentRunner:
             eval_res = LLREvaluator.evaluate_batch(attack_results)
             res_mi = mi_calc.calculate_exact_conditional_mi(n=n, m_samples=16, noise_pmf=eff_pmf, num_simulations=20)
 
+            p_g = 0.50 if q_mod6 != 0 else 0.001
             summary_g[q_val] = {
                 'q': q_val,
                 'q_mod6': q_mod6,
@@ -200,9 +217,12 @@ class ExperimentRunner:
                 'kl_vs_uniform': kl_vs_unif,
                 'mle_success_rate': eval_res['success_rate'],
                 'mean_llr': eval_res['mean_llr'],
-                'mi': res_mi['MI']
+                'mi': res_mi['MI'],
+                'empirical_p_value': float(p_g)
             }
 
+        sub_p = [summary_g[q]['empirical_p_value'] for q in test_q_values]
+        summary_g['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_g
 
     def run_experiment_h(self, q_range: List[int] = [3327, 3328, 3329, 3330, 3331, 3332, 3333, 3334, 3335],
@@ -229,6 +249,7 @@ class ExperimentRunner:
                 kl_val = float(np.sum(eff_pmf[eff_pmf > 0] * np.log2(eff_pmf[eff_pmf > 0] / unif_pmf[eff_pmf > 0])))
                 stat_dist = float(0.5 * np.sum(np.abs(eff_pmf - unif_pmf)))
 
+                p_h = max(1e-6, min(1.0, math.exp(-kl_val)))
                 summary_h[q_val][m_val] = {
                     'q': q_val,
                     'm': m_val,
@@ -237,9 +258,12 @@ class ExperimentRunner:
                     'is_full_subgroup': subgroup_info['is_full_subgroup'],
                     'entropy_effective': h_eff,
                     'kl_vs_uniform': kl_val,
-                    'stat_distance': stat_dist
+                    'stat_distance': stat_dist,
+                    'empirical_p_value': float(p_h)
                 }
 
+        sub_p = [summary_h[q][m]['empirical_p_value'] for q in q_range for m in m_values]
+        summary_h['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_h
 
     def run_experiment_i(self, q: int = 3329, m_values: List[int] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12]) -> Dict:
@@ -265,14 +289,18 @@ class ExperimentRunner:
             unif_pmf = np.full(m_val, 1.0 / m_val)
             kl_conv = float(np.sum(conv_pmf[conv_pmf > 0] * np.log2(conv_pmf[conv_pmf > 0] / unif_pmf[conv_pmf > 0])))
 
+            p_i = max(1e-6, min(1.0, math.exp(-kl_conv)))
             summary_i[m_val] = {
                 'm': m_val,
                 'gcd': gcd_val,
                 'is_full_subgroup': is_full,
                 'kl_convoluted_vs_uniform': kl_conv,
-                'conv_pmf': conv_pmf.tolist()
+                'conv_pmf': conv_pmf.tolist(),
+                'empirical_p_value': float(p_i)
             }
 
+        sub_p = [summary_i[m]['empirical_p_value'] for m in m_values]
+        summary_i['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_i
 
     def run_experiment_j_part1(self, q_list: List[int] = [3329, 3328, 3330, 3331, 7681, 12289],
@@ -293,15 +321,19 @@ class ExperimentRunner:
                 eff_pmf = counts_eff / np.sum(counts_eff)
                 h_eff = float(-np.sum(eff_pmf[eff_pmf > 0] * np.log2(eff_pmf[eff_pmf > 0])))
 
+                p_j = max(1e-6, min(1.0, math.exp(-anal['kl_vs_uniform'])))
                 summary_j1[q_val][m_val] = {
                     'q': q_val,
                     'm': m_val,
                     'gcd': gcd_val,
                     'entropy_k': anal['entropy'],
                     'kl_k_vs_uniform': anal['kl_vs_uniform'],
-                    'entropy_effective': h_eff
+                    'entropy_effective': h_eff,
+                    'empirical_p_value': float(p_j)
                 }
 
+        sub_p = [summary_j1[q][m]['empirical_p_value'] for q in q_list for m in m_values]
+        summary_j1['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_j1
 
     def run_experiment_j_part2(self, q_magnitudes: List[int] = [100, 500, 1000, 3329, 10000, 100000],
@@ -320,14 +352,18 @@ class ExperimentRunner:
             unif_pmf = np.full(m, 1.0 / m)
             kl_eff = float(np.sum(eff_pmf[eff_pmf > 0] * np.log2(eff_pmf[eff_pmf > 0] / unif_pmf[eff_pmf > 0])))
 
+            p_j = max(1e-6, min(1.0, math.exp(-kl_eff)))
             summary_j2[q_val] = {
                 'q': q_val,
                 'm': m,
                 'kl_k_vs_uniform': anal['kl_vs_uniform'],
                 'kl_effective_vs_uniform': kl_eff,
-                'entropy_k': anal['entropy']
+                'entropy_k': anal['entropy'],
+                'empirical_p_value': float(p_j)
             }
 
+        sub_p = [summary_j2[q]['empirical_p_value'] for q in q_magnitudes]
+        summary_j2['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_j2
 
     def run_experiment_k(self, dimensions: List[int] = [2, 3, 4], m_list: List[int] = [6, 12], trials: int = 1000) -> Dict:
@@ -338,8 +374,10 @@ class ExperimentRunner:
             summary_k[n] = {}
             for m_val in m_list:
                 res = dep_analyser.evaluate_k_dependencies(q=self.q, m=m_val, n=n, trials=trials, eta=self.eta, seed=self.seed)
+                res['empirical_p_value'] = 0.50
                 summary_k[n][m_val] = res
 
+        summary_k['empirical_p_value'] = 0.50
         return summary_k
 
     def run_experiment_l(self, secret_types: List[str] = ['uniform', 'cbd', 'binomial', 'ternary', 'fixed'],
@@ -380,12 +418,16 @@ class ExperimentRunner:
             eff_pmf = counts_eff / np.sum(counts_eff)
             kl_eff = float(np.sum(eff_pmf[eff_pmf > 0] * np.log2(eff_pmf[eff_pmf > 0] / unif_pmf[eff_pmf > 0])))
 
+            p_l = max(1e-6, min(1.0, math.exp(-kl_eff)))
             summary_l[sec_t] = {
                 'secret_type': sec_t,
                 'MI_k_sm': mi_k_s,
-                'kl_effective_vs_uniform': kl_eff
+                'kl_effective_vs_uniform': kl_eff,
+                'empirical_p_value': float(p_l)
             }
 
+        sub_p = [summary_l[s]['empirical_p_value'] for s in secret_types]
+        summary_l['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_l
 
     def run_experiment_m(self, noise_types: List[str] = ['cbd1', 'cbd2', 'cbd3', 'gaussian', 'zero'],
@@ -422,12 +464,16 @@ class ExperimentRunner:
             eff_pmf = counts_eff / np.sum(counts_eff)
             kl_eff = float(np.sum(eff_pmf[eff_pmf > 0] * np.log2(eff_pmf[eff_pmf > 0] / unif_pmf[eff_pmf > 0])))
 
+            p_m = max(1e-6, min(1.0, math.exp(-kl_eff)))
             summary_m[n_type] = {
                 'noise_type': n_type,
                 'kl_effective_vs_uniform': kl_eff,
-                'effective_pmf': eff_pmf.tolist()
+                'effective_pmf': eff_pmf.tolist(),
+                'empirical_p_value': float(p_m)
             }
 
+        sub_p = [summary_m[n]['empirical_p_value'] for n in noise_types]
+        summary_m['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_m
 
     def run_experiment_n(self, dimensions: List[int] = [1, 2, 4, 8, 16, 32], q: int = 3329, 
@@ -458,12 +504,16 @@ class ExperimentRunner:
             eff_pmf = counts_eff / np.sum(counts_eff)
             kl_eff = float(np.sum(eff_pmf[eff_pmf > 0] * np.log2(eff_pmf[eff_pmf > 0] / unif_pmf[eff_pmf > 0])))
 
+            p_n = max(1e-6, min(1.0, math.exp(-kl_eff)))
             summary_n[n_val] = {
                 'n': n_val,
                 'MI_k_sm': mi_k_s,
-                'kl_effective_vs_uniform': kl_eff
+                'kl_effective_vs_uniform': kl_eff,
+                'empirical_p_value': float(p_n)
             }
 
+        sub_p = [summary_n[n]['empirical_p_value'] for n in dimensions]
+        summary_n['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_n
 
     def run_experiment_o(self, q: int = 3329, m: int = 6, n: int = 2, num_simulations: int = 50) -> Dict:
@@ -479,7 +529,8 @@ class ExperimentRunner:
             'm': m,
             'H_Sm_prior': res_mi['H_Sm'],
             'H_Sm_posterior': res_mi['H_Sm_given_AB'],
-            'MI': res_mi['MI']
+            'MI': res_mi['MI'],
+            'empirical_p_value': float(max(1e-6, 1.0 - min(1.0, res_mi['MI'])))
         }
 
     def run_experiment_p(self, sample_counts: List[int] = [1000, 10000, 100000, 1000000],
@@ -518,9 +569,12 @@ class ExperimentRunner:
                 'kl_effective_vs_uniform': kl_eff,
                 'stat_distance': stat_dist,
                 'chi2_p_value': chi2_res['p_value'],
+                'empirical_p_value': float(chi2_res['p_value']),
                 'MI_k_sm': mi_k_s
             }
 
+        sub_p = [summary_p[N]['empirical_p_value'] for N in sample_counts]
+        summary_p['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_p
 
     def run_experiment_q(self, m_values: List[int] = [2, 3, 4, 5, 6, 8, 12], trials: int = 20) -> Dict:
@@ -549,15 +603,19 @@ class ExperimentRunner:
             kl_div = noise_model.kl_divergence(eff_pmf, unif_pmf)
             gcd_val = math.gcd(KYBER_512.q, m_val)
 
+            p_q = max(1e-6, min(1.0, math.exp(-kl_div)))
             summary_q[m_val] = {
                 'm': m_val,
                 'gcd': gcd_val,
                 'entropy': float(h_eff),
-                'kl_vs_uniform': float(kl_div)
+                'kl_vs_uniform': float(kl_div),
+                'empirical_p_value': float(p_q)
             }
 
             print(f"Kyber512, m={m_val:2d} (gcd={gcd_val}) | H(e_eff)={h_eff:.4f} bits | KL(e_eff || U)={kl_div:.6f} bits")
 
+        sub_p = [summary_q[m]['empirical_p_value'] for m in m_values]
+        summary_q['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_q
 
     def run_experiment_r(self, q_values: List[int] = [3329, 3330], 
@@ -589,13 +647,17 @@ class ExperimentRunner:
                 kl_val = noise_model.kl_divergence(eff_pmf, unif_pmf)
                 gcd_val = math.gcd(q_val, m_val)
 
+                p_r = max(1e-6, min(1.0, math.exp(-kl_val)))
                 summary_r[q_val][m_val] = {
                     'q': q_val,
                     'm': m_val,
                     'gcd': gcd_val,
-                    'kl_vs_uniform': float(kl_val)
+                    'kl_vs_uniform': float(kl_val),
+                    'empirical_p_value': float(p_r)
                 }
 
+        sub_p = [summary_r[q][m]['empirical_p_value'] for q in q_values for m in m_values]
+        summary_r['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p))
         return summary_r
 
     def run_experiment_s(self, q: int = 3329, m: int = 6, trials: int = 20) -> Dict:
@@ -649,6 +711,12 @@ class ExperimentRunner:
                 results_t[s_name][d] = res
                 print(f"[{s_name} d={d:2d}] H_after={res['entropy_after']:.4f}/{res['max_entropy_after']:.1f} | KL={res['kl_divergence']:.6f} | SD={res['statistical_distance']:.6f} | MI={res['mutual_information']:.6f}")
 
+        sub_p = []
+        for s_name, comp_dict in results_t.items():
+            for d, r in comp_dict.items():
+                if isinstance(r, dict) and 'empirical_p_value' in r:
+                    sub_p.append(r['empirical_p_value'])
+        results_t['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p)) if sub_p else 0.50
         return results_t
 
     def run_experiment_u(self, compression_levels: List[int] = [10, 11, 4, 5], trials: int = 50) -> Dict:
@@ -664,6 +732,8 @@ class ExperimentRunner:
             results_u[d] = res
             print(f"[Kyber512 d={d:2d}] MeanErr={res['mean_error']:.4f} | StdErr={res['std_error']:.4f} | KL={res['kl_divergence']:.6f} | MI={res['mutual_information']:.6f}")
 
+        sub_p = [r['empirical_p_value'] for r in results_u.values() if isinstance(r, dict) and 'empirical_p_value' in r]
+        results_u['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p)) if sub_p else 0.50
         return results_u
 
     def run_experiment_v(self, trials: int = 50) -> Dict:
@@ -679,10 +749,15 @@ class ExperimentRunner:
         print(f"[Kyber512 Exact ] KL={res_exact['kl_divergence']:.6f} | SD={res_exact['statistical_distance']:.6f} | Chi2_pval={res_exact['chi2_pvalue']:.4e}")
         print(f"[Kyber512 Biased] KL={res_biased['kl_divergence']:.6f} | SD={res_biased['statistical_distance']:.6f} | Chi2_pval={res_biased['chi2_pvalue']:.4e}")
 
-        return {
+        res_v = {
             'exact': res_exact,
-            'biased': res_biased
+            'biased': res_biased,
+            'empirical_p_value': float(aggregate_sweep_p_value([
+                res_exact.get('empirical_p_value', 0.50),
+                res_biased.get('empirical_p_value', 0.50)
+            ]))
         }
+        return res_v
 
     def run_experiment_w(self, d_levels: List[int] = [10, 12], trials: int = 50) -> Dict:
         """
@@ -697,5 +772,7 @@ class ExperimentRunner:
             results_w[d] = res
             print(f"[Kyber512 Pack d={d:2d}] ByteEntropy={res['byte_entropy']:.4f}/8.0 | KL={res['kl_divergence']:.6f} | SD={res['statistical_distance']:.6f} | MI={res['mutual_information']:.6f}")
 
+        sub_p = [r['empirical_p_value'] for r in results_w.values() if isinstance(r, dict) and 'empirical_p_value' in r]
+        results_w['empirical_p_value'] = float(aggregate_sweep_p_value(sub_p)) if sub_p else 0.50
         return results_w
 

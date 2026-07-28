@@ -151,7 +151,16 @@ def audit_hint_transformation(q: int = 8380417, gamma2: int = 95232, eta: int = 
     mi_s1 = _compute_corrected_mutual_info(s1, h, K_y=2, num_samples=num_samples)
     mi_s2 = _compute_corrected_mutual_info(s2, h, K_y=2, num_samples=num_samples)
 
-    # 4. Criterio de Aceptación (Pass/Fail)
+    # 4. Criterio de Aceptación (Pass/Fail) e Información Mutua Robusta
+    from transformations.dsa.audit_utils import compute_mutual_information_robust
+    mi_stats = compute_mutual_information_robust(
+        s_vec=s1,
+        out_vec=h,
+        num_bins=256,
+        n_permutations=500 if num_samples >= 10000 else 50,
+        seed=seed
+    )
+
     mi_threshold = 1e-3 if num_samples >= 500000 else 0.05
     p_val_ok = (p_val > 0.01) or (num_samples < 50000)
 
@@ -182,6 +191,9 @@ def audit_hint_transformation(q: int = 8380417, gamma2: int = 95232, eta: int = 
         'tvd': float(tvd),
         'chi2_stat': float(chi2_stat),
         'chi2_pvalue': float(p_val),
+        'chi2_p_value': float(p_val),
+        'empirical_p_value': mi_stats['empirical_p_value'],
+        'mi_mm_display': mi_stats['mi_mm_display'],
         'mutual_info_s1': float(mi_s1),
         'mutual_info_s2': float(mi_s2),
         'mutual_information': float(max(mi_s1, mi_s2)),

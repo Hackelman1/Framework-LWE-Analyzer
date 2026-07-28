@@ -69,6 +69,15 @@ class KyberTransformAuditor:
         p_max_obs = float(np.max(emp_pmf))
         bayes_gain = float(max(0.0, p_max_obs - p_prior))
 
+        from transformations.dsa.audit_utils import compute_mutual_information_robust
+        mi_stats = compute_mutual_information_robust(
+            s_vec=all_sec,
+            out_vec=all_comp,
+            num_bins=256,
+            n_permutations=500,
+            seed=42
+        )
+
         if kl_div < 0.05 and bayes_gain < 0.01:
             interpretation = "Compress transformation preserves high uniformity (Low risk)"
         else:
@@ -85,6 +94,9 @@ class KyberTransformAuditor:
             'statistical_distance': float(stat_dist),
             'chi2_stat': float(chi2_stat),
             'chi2_pvalue': float(p_val),
+            'chi2_p_value': float(p_val),
+            'empirical_p_value': mi_stats['empirical_p_value'],
+            'mi_mm_display': mi_stats['mi_mm_display'],
             'mutual_information': float(mi_secret),
             'bayesian_attacker_gain': bayes_gain,
             'interpretation': interpretation
@@ -136,6 +148,15 @@ class KyberTransformAuditor:
         mi_secret = compute_mutual_information(all_sec, shift_err, bins_y=bins_err)
         bayes_gain = float(max(0.0, (1.0 / len(obs_width_pmf)) - (1.0 / ideal_width))) if len(obs_width_pmf) > 0 else 0.0
 
+        from transformations.dsa.audit_utils import compute_mutual_information_robust
+        mi_stats = compute_mutual_information_robust(
+            s_vec=all_sec,
+            out_vec=all_err,
+            num_bins=256,
+            n_permutations=500,
+            seed=42
+        )
+
         if abs(mean_err) < 0.5 and mi_secret < 0.05:
             interpretation = "Rounding introduces zero-centered bounded error with negligible secret correlation"
         else:
@@ -150,6 +171,8 @@ class KyberTransformAuditor:
             'std_error': std_err,
             'kl_divergence': float(kl_div),
             'statistical_distance': float(stat_dist),
+            'empirical_p_value': mi_stats['empirical_p_value'],
+            'mi_mm_display': mi_stats['mi_mm_display'],
             'mutual_information': float(mi_secret),
             'bayesian_attacker_gain': bayes_gain,
             'interpretation': interpretation
@@ -193,6 +216,15 @@ class KyberTransformAuditor:
         mi_secret = compute_mutual_information(all_sec, all_red % self.params.q, bins_y=self.params.q)
         bayes_gain = float(max(0.0, np.max(emp_pmf) - (1.0 / self.params.q)))
 
+        from transformations.dsa.audit_utils import compute_mutual_information_robust
+        mi_stats = compute_mutual_information_robust(
+            s_vec=all_sec,
+            out_vec=all_red % self.params.q,
+            num_bins=256,
+            n_permutations=500,
+            seed=42
+        )
+
         if reduction_type == "exact":
             interpretation = "Exact modular reduction preserves complete coefficient distribution integrity"
         else:
@@ -208,6 +240,9 @@ class KyberTransformAuditor:
             'statistical_distance': float(stat_dist),
             'chi2_stat': float(chi2_stat),
             'chi2_pvalue': float(p_val),
+            'chi2_p_value': float(p_val),
+            'empirical_p_value': mi_stats['empirical_p_value'],
+            'mi_mm_display': mi_stats['mi_mm_display'],
             'mutual_information': float(mi_secret),
             'bayesian_attacker_gain': bayes_gain,
             'interpretation': interpretation
@@ -250,6 +285,15 @@ class KyberTransformAuditor:
         mi_secret = compute_mutual_information(sec_sample, byte_sample, bins_y=256)
         bayes_gain = float(max(0.0, np.max(emp_pmf) - (1.0 / 256)))
 
+        from transformations.dsa.audit_utils import compute_mutual_information_robust
+        mi_stats = compute_mutual_information_robust(
+            s_vec=sec_sample,
+            out_vec=byte_sample,
+            num_bins=256,
+            n_permutations=500,
+            seed=42
+        )
+
         if kl_div < 0.05 and bayes_gain < 0.02:
             interpretation = "Byte packing stream exhibits high byte-entropy and no structural leakage"
         else:
@@ -265,6 +309,9 @@ class KyberTransformAuditor:
             'statistical_distance': float(stat_dist),
             'chi2_stat': float(chi2_stat),
             'chi2_pvalue': float(p_val),
+            'chi2_p_value': float(p_val),
+            'empirical_p_value': mi_stats['empirical_p_value'],
+            'mi_mm_display': mi_stats['mi_mm_display'],
             'mutual_information': float(mi_secret),
             'bayesian_attacker_gain': bayes_gain,
             'interpretation': interpretation
