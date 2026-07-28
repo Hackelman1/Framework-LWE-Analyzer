@@ -1,10 +1,16 @@
-# Modular Projection Effects in LWE: Algebraic Conditions for Statistical Noise Uniformization and Implementation Auditing in ML-KEM & ML-DSA
+# Modular Projection Effects in LWE: Algebraic Conditions for Statistical Noise Uniformization and Implementation Auditing in ML-KEM and ML-DSA
 
-## 01. Introducción
+**Author**: Hackelman  
+**Date**: July 28, 2026  
+**Classification**: Mathematical Cryptography / Lattice-Based Cryptography / Applied Stochastics  
 
-### Contexto y Motivación
-Los esquemas de criptografía basada en retículos (Lattice-Based Cryptography), estandarizados por el NIST en las especificaciones **ML-KEM (Kyber / FIPS 203)** y **ML-DSA (Dilithium / FIPS 204)**, basan su seguridad en la dureza de los problemas **Learning With Errors (LWE)**, **Module-LWE (M-LWE)** y **Module Short Integer Solution (M-SIS)**. Una instancia LWE o M-LWE estándar opera sobre un anillo modular primario $\mathbb{Z}_q$, donde las observaciones públicas $b = A s + e \pmod q$ ocultan la clave secreta $s$ agregando un ruido centrado $e$ no uniforme (típicamente Binomial Centrado CBD).
+---
 
-En diversos escenarios de análisis algebraico, pruebas de resistencia y auditoría de implementaciones, se estudian proyecciones homomórficas hacia anillos residuales $\mathbb{Z}_m$ con $m \ll q$, así como funciones aritméticas de descomposición, truncamiento y redondeo modular. Un interrogante fundamental es: **¿Conserva el error o residuo observable bajo dichas operaciones la estructura no uniforme del ruido original o se uniformiza, y existen fugas de información mutua sobre el secreto en las transformaciones reales de implementación?**
+## 1. Introduction
 
-Este trabajo presenta la caracterización matemática completa y la validación experimental del **Teorema de Uniformización Modular LWE**, extendiendo su alcance hacia la auditoría estadística rigurosa de las transformaciones de implementación de los estándares FIPS 203 (ML-KEM) y FIPS 204 (ML-DSA), abarcando desde la compresión y empaquetamiento hasta las funciones de descomposición (`Decompose`), redondeo de clave pública (`Power2Round`) y generación de vectores de pistas (`MakeHint` / `UseHint`).
+### Context and Motivation
+Lattice-based cryptographic schemes standardized by NIST in **ML-KEM (Kyber / FIPS 203)** and **ML-DSA (Dilithium / FIPS 204)** base their security on the hardness of the **Learning With Errors (LWE)**, **Module-LWE (M-LWE)**, and **Module Short Integer Solution (M-SIS)** problems over primary modular rings $\mathbb{Z}_q$. Public observations $b = A s + e \pmod q$ mask secret key vectors $s$ via non-uniform centered noise $e$ (typically Centered Binomial Distributions, CBD, or bounded uniform distributions).
+
+In algebraic analysis, resistance testing, and implementation auditing, projective homomorphic reductions to smaller residual rings $\mathbb{Z}_m$ ($m \ll q$) as well as arithmetic decomposition, truncation, and rounding functions are frequently evaluated. A fundamental question arises: **Does observable noise or residual structure under these operations retain the non-uniformity of the original distribution, or does it undergo statistical uniformization? Furthermore, do implementation-level transformations leak mutual information regarding secret key vectors?**
+
+This work presents the complete mathematical characterization and empirical validation of the **LWE Modular Uniformization Theorem**. We extend the framework to perform a comprehensive statistical audit of implementation transformations across **ML-KEM (FIPS 203)** and **ML-DSA (FIPS 204)**—covering compression, byte packing, residue decomposition (`Decompose`), public key rounding (`Power2Round`), and hint vector generation (`MakeHint` / `UseHint`). Evaluated across $N = 500,000$ samples with Miller-Madow bias-corrected mutual information, add-one smoothed permutation tests, internal Bonferroni sweep aggregation, and Benjamini-Hochberg False Discovery Rate (FDR) control across $M = 23$ canonical leakage hypotheses, we demonstrate that actual implementation operators preserve statistical noise independence and leak zero secret information.
