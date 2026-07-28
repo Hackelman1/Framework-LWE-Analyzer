@@ -1,6 +1,8 @@
-# Limitaciones Explícitas y Alcance Criptográfico del Framework
+# Limitaciones Explícitas y Alcance Criptográfico del Framework (v2.0.0)
 
-Este documento delimita formalmente el alcance de las conclusiones obtenidas en el **Framework de Evaluación Experimental de Proyecciones LWE $\mathbb{Z}_q \to \mathbb{Z}_m$**.
+**Proyecto:** `pqc-statistical-auditor`  
+**Autor:** Ricardo Peinador  
+**Versión:** 2.0.0  
 
 ---
 
@@ -8,9 +10,9 @@ Este documento delimita formalmente el alcance de las conclusiones obtenidas en 
 
 > [!CAUTION]
 > **No Ruptura de Seguridad**:
-> Los resultados de este estudio **no constituyen ni implican una ruptura de seguridad, ataque de clave ni vulnerabilidad criptográfica** en esquemas post-cuánticos estandarizados como **ML-KEM (Kyber)** o **Falcon**.
+> Los resultados de este estudio **no constituyen ni implican una ruptura de seguridad, ataque de clave ni vulnerabilidad criptográfica** en esquemas post-cuánticos estandarizados por NIST como **ML-KEM (FIPS 203)**, **ML-DSA (FIPS 204)** o **Falcon**.
 
-- **Propiedad Estadística Interna**: El fenómeno analizado describe la transformación de la distribución de probabilidad del ruido observable bajo proyecciones algebraicas explícitas $\mathbb{Z}_q \to \mathbb{Z}_m$.
+- **Propiedad Estadística Interna**: El fenómeno analizado describe la transformación de la distribución de probabilidad del ruido observable y la ausencia de filtración de información mutua en proyecciones algebraicas explícitas y transformaciones de implementación.
 - **Preservación de Seguridad**: El hecho de que el ruido efectivo observable $e_{\text{efectivo}} = (b_m - A_m s_m) \bmod m$ sea **perfectamente uniforme** cuando $\gcd(q, m) = 1$ confirma que la proyección no filtra información utilizable sobre la clave reducida $s \bmod m$, preservando la dureza del problema.
 
 ---
@@ -21,28 +23,24 @@ Este documento delimita formalmente el alcance de las conclusiones obtenidas en 
    - Las pruebas del atacante bayesiano ideal (MLE) y las estimaciones exactas a posteriori de la Información Mutua $I(S_m; B_m \mid A_m)$ se realizan mediante enumeración completa sobre el espacio de claves de tamaño $m^n$.
    - Para dimensiones prácticas (ej. Kyber-512/768/1024 con $n = 256$), la enumeración exhaustiva es computacionalmente intratable ($6^{256} \approx 10^{199}$ candidatos).
 
-2. **Aproximación Asintótica del Envoltorio**:
-   - La prueba de uniformidad de $P(k \bmod m) \to U(\mathbb{Z}_m)$ se sostiene en la aproximación asintótica para $q / m \gg 1$ y $A, s \sim U(\mathbb{Z}_q)$.
-   - Si las matrices $A$ o los secretos $s$ provienen de distribuciones no uniformes o estructuradas en anillos finitos específicos (ej. Module-LWE o Ring-LWE), la tasa de convergencia requiere análisis algebraicos adicionales en retículos ideales.
+2. **Criterio de Independencia Condicional**:
+   - El Teorema de Contracción Condicional de la convolución circular $P(e_{\text{effective}}) = P_e \circledast P_{kq}$ requiere la condición estocástica $e \bmod m \perp\!\!\!\perp k q \bmod m$, la cual en los esquemas prácticos es garantizada por el término de enmascaramiento de alta entropía $A s \bmod q$.
 
-3. **Supuesto de Muestreo de Múltiples Muestras**:
-   - Las estimaciones experimentales asumen muestras LWE obtenidas de matrices $A$ independientes.
+3. **Agregación Bonferroni Interna y Control Global BH-FDR ($M = 23$)**:
+   - Para barridos paramétricos ($K$ subconfiguraciones), los $p$-valores se agregan mediante Bonferroni interno ($\tilde{p}_m = \min(K_m \cdot p_{\min}, 1.0)$) garantizando $P(\tilde{p} \le t) \le t$ bajo $\mathbb{H}_0$.
+   - Se aplica el control BH-FDR globalmente sobre el pool de $M = 23$ hipótesis de la familia de fuga, colapsando a FWER bajo $\mathbb{H}_0^{\text{global}}$. La familia de uniformidad marginal ($\chi^2$) se evalúa de forma independiente.
 
-4. **Sesgo Positivo en Estimadores de Entropía e Información Mutua**:
-   - La estimación empírica de información mutua $I(S; \text{Salida})$ sobre muestras de tamaño finito $N$ sufre del sesgo positivo inherente de la entropía plug-in de Shannon.
-   - El framework aplica la **corrección de Miller-Madow**:
+4. **Corrección de Sesgo de Miller-Madow en BITS**:
+   - La estimación de información mutua $I(S; \text{Salida})$ sobre $B = 256$ binios fija la densidad muestral $N / K_{XY} \ge 217.0$ ($N = 500,000$) y utiliza la corrección exacta en bits:
      $$\text{Bias}_{\text{MM}} = \frac{K_{XY} - K_X - K_Y + 1}{2 N \ln 2}$$
-     junto con intervalos de confianza empíricos al $95\%$ mediante distribuciones $t$-Student para acotar la compatibilidad estadística con cero ($0.0000$ bits).
 
-5. **Sensibilidad a Sesgos en Implementaciones de Alto Rendimiento (AVX2 / No Tiempo Constante)**:
-   - Pequeños sesgos numéricos en algoritmos de reducción modular imprecisa o imprecisiones en el empaquetamiento de bits (`coefficient_pack`) en código optimizado de C/AVX2 pueden reintroducir patrones observantes o canales laterales de fuga. La opción `reduction_type="biased"` del auditor permite modelar expresamente esta desviación.
-
-6. **Dependencia de la Uniformidad de las Entradas y Fuentes RNG**:
-   - Las conclusiones de uniformización asumen que las entradas a los transformadores y generadores provienen de una distribución completamente uniforme $U(\mathbb{Z}_q)$. Si el generador de números pseudoaleatorios (RNG) sufre degradación de entropía o el secreto proviene de un subespacio sesgado, la independencia estadística puede colapsar bajo un ataque activo.
+5. **Modelo Estadístico de Datos**:
+   - El análisis está restringido exclusivamente al modelo estadístico de datos observables y algoritmos numéricos. No evalúa ataques físicos de canal lateral (DPA, SPA, tiempos de microarquitectura) ni inyección de fallos.
 
 ---
 
-## 4. Declaración de Integridad Metodológica
+## 3. Declaración de Integridad Metodológica
 
-El objetivo exclusivo de este framework es proporcionar una **caracterización rigurosa y reproducible de la física probabilística del envoltorio modular** en proyecciones LWE y auditorías de implementación en ML-KEM / Kyber, estableciendo el límite matemático exacto entre proyecciones que conservan estructura y proyecciones que uniformizan el ruido.
+El objetivo exclusivo de este framework es proporcionar una **caracterización rigurosa y reproducible de la física probabilística del envoltorio modular** en proyecciones LWE y auditorías de implementación en ML-KEM (FIPS 203) y ML-DSA (FIPS 204), estableciendo el límite matemático exacto entre proyecciones que conservan estructura y proyecciones que uniformizan el ruido.
+
 

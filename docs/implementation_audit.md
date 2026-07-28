@@ -1,9 +1,15 @@
-# Auditoría de Transformaciones Nivel Implementación (`docs/implementation_audit.md`)
+# Auditoría de Transformaciones Nivel Implementación (v2.0.0)
+
+**Proyecto:** `pqc-statistical-auditor`  
+**Autor:** Ricardo Peinador  
+**Versión:** 2.0.0  
+
+---
 
 ## 1. Propósito de la Auditoría
 
-El auditor `KyberTransformAuditor` (ubicado en `schemes/module_lwe/kyber_transform_audit.py`) permite evaluar empíricamente si las transformaciones de implementación empleadas en **ML-KEM / Kyber** introducen::
-1. **Pérdida de uniformidad** en los coeficientes cifrados o comprimidos.
+El auditor de transformaciones de implementación (en `schemes/module_lwe/kyber_transform_audit.py` y `transformations/dsa/audit_dsa.py`) permite evaluar empíricamente si las transformaciones de implementación empleadas en **ML-KEM (FIPS 203)** y **ML-DSA (FIPS 204)** introducen:
+1. **Pérdida de uniformidad** en los coeficientes cifrados, comprimidos o descompuestos.
 2. **Sesgo estadístico** medible mediante prueba de $\chi^2$ y divergencia KL.
 3. **Huellas estructurales en el empaquetamiento de bytes** (`coefficient_pack`).
 4. **Filtración de información mutua** $I(S; \text{Salida})$ hacia un atacante estadístico.
@@ -25,24 +31,25 @@ Compara la reducción exacta frente a reducciones sesgadas simuladas, detectando
 ### 2.4 `audit_pack_unpack_leakage(d, trials)`
 Analiza el flujo de bytes empaquetados resultantes de convertir coeficientes de $d$ bits a arreglos de 8 bits. Evalúa la entropía por byte $H_{\text{byte}} \le 8.0$ bits.
 
-### 2.5 `audit_secret_leakage_after_transform(...)`
-Cuantifica la información mutua residual entre el secreto $S$ y la salida del transformador, calculando la ganancia de probabilidad de éxito de un atacante Bayesiano.
+### 2.5 `audit_dsa_decompose(...)`, `audit_dsa_power2round(...)`, `audit_dsa_make_hint(...)`
+Evalúa la ausencia de filtración de información mutua en los residuos de firma y clave pública de ML-DSA (FIPS 204) utilizando $B = 256$ binios fijos, test de permutaciones ($P=500$, `seed=42`) y suavizado Add-One.
 
 ---
 
 ## 3. Criterios de Riesgo e Interpretación
 
-- **Sin filtración (Riesgo Bajo)**: $D_{\text{KL}} < 0.05$ bits, $I(S; \text{Output}) \approx 0.000$ bits, Ventaja Bayesiana $< 0.01$.
-- **Alerta de Sesgo (Riesgo Alto)**: $D_{\text{KL}} \ge 0.05$ bits, p-valor $\chi^2 < 0.01$, o $I(S; \text{Output}) > 0.05$ bits.
+- **Sin filtración (PASS)**: $q$-valor ajustado por BH-FDR $q > 0.05$.
+- **Alerta de Sesgo (WARNING)**: $q$-valor ajustado por BH-FDR $q \le 0.05$.
 
 ---
 
 ## 4. Matices Técnicos y Puntos de Atención en la Auditoría
 
 1. **Estimación Dessesgada de Información Mutua $I(S; \text{Salida})$**:
-   - Dado que los estimadores discretos empíricos presentan un sesgo positivo estocástico $\mathcal{O}(1/N)$, el auditor emplea la **corrección de Miller-Madow**:
-     $$\text{Bias} = \frac{K_{XY} - K_X - K_Y + 1}{2 N \ln 2}$$
+   - Dado que los estimadores discretos empíricos presentan un sesgo positivo estocástico $\mathcal{O}(1/N)$, el auditor emplea la **corrección de Miller-Madow en bits**:
+     $$\text{Bias}_{\text{MM}} = \frac{K_{XY} - K_X - K_Y + 1}{2 N \ln 2}$$
    - Esto evita interpretar ruido estadístico muestral como filtración real de información sobre el secreto.
+
 
 2. **Implementaciones de Alto Rendimiento (AVX2 / C sin tiempo constante)**:
    - En implementaciones reales (ej. librerías optimizadas en C con instrucciones vectoriales AVX2), reducciones modulares imprecisas (Barrett/Montgomery truncados) o manipulaciones de bits en `coefficient_pack` pueden reintroducir asimetrías de frecuencia. La modalidad `reduction_type="biased"` permite auditar explícitamente estos escenarios.

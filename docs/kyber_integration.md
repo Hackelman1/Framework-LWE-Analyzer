@@ -1,6 +1,10 @@
-# Integración Oficial de ML-KEM / Kyber (Kyber512, Kyber768, Kyber1024)
+# Integración Oficial de ML-KEM / Kyber (v2.0.0)
 
-## Parámetros Oficiales del Estándar NIST FIPS 203
+**Proyecto:** `pqc-statistical-auditor`  
+**Autor:** Ricardo Peinador  
+**Versión:** 2.0.0  
+
+---
 
 | Variante | Módulo $q$ | Grado $N$ | Dimensión del Módulo $k$ | Ruido $\eta_1$ | Ruido $\eta_2$ | Tamaño de Clave (bits) |
 |:--------:|:----------:|:---------:|:-----------------------:|:--------------:|:--------------:|:---------------------:|
