@@ -13,7 +13,7 @@ Release oficial v2.0.0 del framework teórico y experimental para el análisis d
 
 ## 1. Alcance y Descubrimientos Clave
 
-1. **Teorema de Uniformización Modular en LWE (Teorema Matemático Condicional)**: Cota contractiva de distancia estadística mediante convolución circular, sujeta a la condición de independencia estructural ($e \bmod m \perp\!\!\!\perp k q \bmod m$) garantizada por el enmascaramiento de alta entropía de $A s \bmod q$:
+1. **Teorema de Uniformización Modular en LWE (Teorema Matemático Condicional)**: Cota contractiva de distancia estadística mediante convolución circular, sujeta a la condición de independencia estructural ($e \bmod m \perp\!\!\!\perp k q \bmod m$) verificada con probabilidad $\ge 1 - 2\eta/q$ (despreciable, $10^{-3}$ a $10^{-7}$ según el esquema) por desacoplamiento en la frontera de envolvente modular (ver Sección 4.2 del paper):
    $$\delta(P(e_{\text{effective}}), U(\mathbb{Z}_m)) \le \delta(P(k q \bmod m), U(\mathbb{Z}_m))$$
 2. **Criterios Algebraicos**: La uniformización completa del ruido efectivo exige $\gcd(q, m) = 1$ y dispersión suficiente del término de envolvente modular $k = \lfloor (A s + e)/q \rfloor \bmod m$.
 3. **Prueba Sin Ruido ($e=0$)**: Demostración matemática condicional y empírica de que la uniformización es producida intrínsecamente por el término de envolvente $k$, independientemente de la magnitud de $e$, bajo la condición de independencia estructural ($e \bmod m \perp\!\!\!\perp k q \bmod m$).
@@ -116,7 +116,7 @@ analyze_scheme(scheme="Kyber512", transformation="compression", parameters={"d":
 ## 6. Lo Que Demuestra y NO Demuestra Este Framework
 
 - **SÍ Demuestra**:
-  - Que las proyecciones modulares con $\gcd(q, m) = 1$ destruyen la estructura estadística observada del ruido bajo la condición de independencia estructural ($e \bmod m \perp\!\!\!\perp k q \bmod m$) garantizada por el enmascaramiento de alta entropía de $A s \bmod q$.
+  - Que las proyecciones modulares con $\gcd(q, m) = 1$ destruyen la estructura estadística observada del ruido bajo la condición de independencia estructural ($e \bmod m \perp\!\!\!\perp k q \bmod m$) verificada con probabilidad $\ge 1 - 2\eta/q$ (despreciable, $10^{-3}$ a $10^{-7}$ según el esquema) por desacoplamiento en la frontera de envolvente modular (ver Sección 4.2 del paper).
   - Que las transformaciones reales de compresión, redondeo, descomposición y generación de pistas en Kyber (FIPS 203) y ML-DSA (FIPS 204) conservan una alta uniformidad y no aportan ventaja estadística al atacante.
 - **NO Demuestra**:
   - Una ruptura de la seguridad criptográfica de ML-KEM / Kyber (FIPS 203) o ML-DSA / Dilithium (FIPS 204).

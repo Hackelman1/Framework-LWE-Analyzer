@@ -64,7 +64,18 @@ Our theoretical and empirical framework enforces three explicit levels of formal
 ### 4.2 Mathematical Proof of Contraction Bound
 Let $e_{\text{effective}} \equiv (e \bmod m - k (q \bmod m)) \pmod m$, where $k = \lfloor (A s + e)/q \rfloor$. 
 
-*Structural Independence Condition*: Because $e$ appears both in $e \bmod m$ and inside $k$, strict independence $e \bmod m \perp\!\!\!\perp k q \bmod m$ is guaranteed as $A s \bmod q$ acts as a high-entropy masking term. For small noise distributions $e \sim \text{CBD}(\eta)$ with $\eta \ll q$, the wrapping quotient $k$ is determined by the overflow of $A s$ in over $99.99\%$ of samples, decoupling $k \bmod m$ from low-order error residues.
+*Structural Independence Condition*: Since both ML-KEM's $q=3329$ and ML-DSA's $q=8380417$ are prime, and $A$ is drawn uniformly at random independently of $s$, for any fixed $s \ne 0$ the product $As \bmod q$ is **exactly** uniformly distributed over $\mathbb{Z}_q$ — a standard consequence of linear algebra over a finite field, not merely a heuristic "high-entropy masking" assumption.
+
+Let $x_0 = (As) \bmod q \in [0, q)$. Adding noise $e \sim \text{CBD}(\eta)$ (supported on $[-\eta, \eta]$) changes the wrapping quotient $k$ relative to the noise-free case if and only if $x_0$ falls within $\eta$ of the modular boundary. Since $x_0$ is exactly uniform over $q$ integer values:
+$$P\big(k(As+e) \ne k(As)\big) = \frac{2\eta}{q}$$
+
+For the parameter sets audited in this work, this probability is:
+- ML-KEM/Kyber ($q=3329$): $\eta=2 \Rightarrow 1.2\times10^{-3}$; $\eta=3 \Rightarrow 1.8\times10^{-3}$
+- ML-DSA ($q=8380417$): $\eta=2 \Rightarrow 4.8\times10^{-7}$; $\eta=4 \Rightarrow 9.5\times10^{-7}$
+
+By a standard coupling argument, two random variables that agree except with probability $p$ have total variation distance at most $p$. Applying this to the coupling between the true joint distribution of $(e \bmod m, kq \bmod m)$ and the independent product distribution assumed in the convolution step below yields:
+$$\left| \delta\big(P(e_{\text{effective}}), U\big) - \delta\big(P_e \circledast P_{kq}, U\big) \right| \le \frac{2\eta}{q}$$
+negligible relative to the estimator noise floor reported throughout Section 7.
 
 Under this conditional independence, the density satisfies discrete circular convolution $P(e_{\text{effective}}) = P(e \bmod m) \circledast P(k q \bmod m)$. Letting $\delta(P, Q) = \frac{1}{2} \sum_x |P(x) - Q(x)|$, and noting that $P_e \circledast U = U$:
 
@@ -162,7 +173,7 @@ Our findings demonstrate that projecting LWE/M-LWE samples to $\mathbb{Z}_m$ whe
 
 ## 9. Limitations and Methodological Considerations
 1. **Does not constitute a security break** of ML-KEM, ML-DSA, or Falcon.
-2. **Conditional Independence Criterion**: The mathematical contraction theorem relies on high-entropy masking of $A s \bmod q$ to decouple low-order noise residues from modular wrapping quotients.
+2. **Conditional Independence Criterion**: The mathematical contraction theorem relies on modular boundary decoupling of $A s \bmod q$ to bound the total variation coupling distance to independent product distributions by $2\eta/q$ (Section 4.2).
 3. **Internal Bonferroni Aggregation and Global FDR Control**: Parameter sweeps across $K$ subconfigurations are aggregated via internal Bonferroni adjustment ($\tilde{p}_m = \min(K_m \cdot p_{\min}, 1.0)$), ensuring stochastically conservative inputs ($P(\tilde{p} \le t) \le t$) across the $M = 23$ leakage hypothesis family. Benjamini-Hochberg FDR control is applied globally to this family, converging to exact FWER control under $\mathbb{H}_0^{\text{global}}$. Marginal uniformity tests ($\chi^2$) form a separate family and are reported independently. All adjusted leakage $q$-values exceed $0.50$, confirming zero statistical leakage.
 4. **Statistical Threat Model**: Restricted to observable data distributions and algorithmic outputs. Physical side-channel attacks (DPA, SPA, microarchitectural timing) remain outside this mathematical data-model audit.
 

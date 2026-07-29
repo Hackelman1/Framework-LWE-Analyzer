@@ -13,7 +13,7 @@ Official v2.0.0 release of the theoretical and experimental framework for analyz
 
 ## 1. Scope & Key Discoveries
 
-1. **LWE Modular Uniformization Theorem (Conditional Mathematical Theorem)**: Contractive statistical distance bound under circular convolution, subject to the structural independence condition ($e \bmod m \perp\!\!\!\perp k q \bmod m$) guaranteed by the high-entropy masking of $A s \bmod q$:
+1. **LWE Modular Uniformization Theorem (Conditional Mathematical Theorem)**: Contractive statistical distance bound under circular convolution, subject to the structural independence condition ($e \bmod m \perp\!\!\!\perp k q \bmod m$) verified with probability $\ge 1 - 2\eta/q$ (negligible, $10^{-3}$ to $10^{-7}$ depending on the scheme) via modular boundary decoupling (see Section 4.2 of the paper):
    $$\delta(P(e_{\text{effective}}), U(\mathbb{Z}_m)) \le \delta(P(k q \bmod m), U(\mathbb{Z}_m))$$
 2. **Algebraic Criteria**: Complete effective noise uniformization requires $\gcd(q, m) = 1$ and sufficient dispersion of the modular wrapping term $k = \lfloor (A s + e)/q \rfloor \bmod m$.
 3. **Noise-Free Proof ($e=0$)**: Conditional mathematical and empirical proof that uniformization is driven intrinsically by the wrapping term $k$, independently of the noise magnitude $e$, under the structural independence condition ($e \bmod m \perp\!\!\!\perp k q \bmod m$).
@@ -116,7 +116,7 @@ analyze_scheme(scheme="Kyber512", transformation="compression", parameters={"d":
 ## 6. What This Framework DOES and DOES NOT Prove
 
 - **DOES Prove**:
-  - Modular projections with $\gcd(q, m) = 1$ destroy the observable statistical structure of the noise under the structural independence condition ($e \bmod m \perp\!\!\!\perp k q \bmod m$) guaranteed by the high-entropy masking of $A s \bmod q$.
+  - Modular projections with $\gcd(q, m) = 1$ destroy the observable statistical structure of the noise under the structural independence condition ($e \bmod m \perp\!\!\!\perp k q \bmod m$) verified with probability $\ge 1 - 2\eta/q$ (negligible, $10^{-3}$ to $10^{-7}$ depending on the scheme) via modular boundary decoupling (see Section 4.2 of the paper).
   - Real implementation transformations of compression, rounding, decomposition, and hint generation in Kyber (FIPS 203) and ML-DSA (FIPS 204) preserve high uniformity and afford no statistical advantage to an adversary.
 - **DOES NOT Prove**:
   - Any cryptographic security break or key recovery vulnerability in standardized ML-KEM / Kyber (FIPS 203) or ML-DSA / Dilithium (FIPS 204).
