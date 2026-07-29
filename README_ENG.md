@@ -23,6 +23,7 @@ Official v2.0.0 release of the theoretical and experimental framework for analyz
    - Exact vs. biased modular reduction (`exact` vs. `biased`).
    - Bit and byte packing (`coefficient_pack/unpack`).
    - **Audit Conclusion**: Implementation-level transformations preserve statistical noise independence and do not leak mutual information about the secret key ($I(S; \text{Output}) \approx 0.0000$ bits).
+   - *Methodological Note*: unlike `Decompose`/`Power2Round` in ML-DSA, Kyber transformations operate over natively bounded state spaces ($\le 2^{10}$ states), satisfying $N \gg K_{XY}$ without requiring binning, permutation testing, or BH-FDR adjustment.
 5. **Audit of Rounding, Decomposition, and Hint Functions in ML-DSA / Dilithium (FIPS 204)**:
    - **`Decompose`**: Empirical verification that the low-part residue $r_0 \in [-\gamma_2, \gamma_2]$ generated during signing leaks no information about the secret key $S_1$ ($I(S_1; r_0) = 0.000000$ bits) across all security levels.
    - **`Power2Round`**: Demonstration that the truncated public key residue $t_0 \in [-4095, 4096]$ ($d=13$) acts as 13-bit discrete uniform noise, revealing no appreciable mutual information regarding $S_1$ or $S_2$ ($I(S; t_0) \le 0.0031$ bits) and passing the Chi-Square goodness-of-fit test ($\chi^2 p\text{-value} > 0.57$).

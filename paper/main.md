@@ -67,11 +67,13 @@ Let $e_{\text{effective}} \equiv (e \bmod m - k (q \bmod m)) \pmod m$, where $k 
 *Structural Independence Condition*: Since both ML-KEM's $q=3329$ and ML-DSA's $q=8380417$ are prime, and $A$ is drawn uniformly at random independently of $s$, for any fixed $s \ne 0$ the product $As \bmod q$ is **exactly** uniformly distributed over $\mathbb{Z}_q$ — a standard consequence of linear algebra over a finite field, not merely a heuristic "high-entropy masking" assumption.
 
 Let $x_0 = (As) \bmod q \in [0, q)$. Adding noise $e \sim \text{CBD}(\eta)$ (supported on $[-\eta, \eta]$) changes the wrapping quotient $k$ relative to the noise-free case if and only if $x_0$ falls within $\eta$ of the modular boundary. Since $x_0$ is exactly uniform over $q$ integer values:
-$$P\big(k(As+e) \ne k(As)\big) = \frac{2\eta}{q}$$
+$$P\big(k(As+e) \ne k(As)\big) \le \frac{2\eta}{q}$$
 
 For the parameter sets audited in this work, this probability is:
 - ML-KEM/Kyber ($q=3329$): $\eta=2 \Rightarrow 1.2\times10^{-3}$; $\eta=3 \Rightarrow 1.8\times10^{-3}$
 - ML-DSA ($q=8380417$): $\eta=2 \Rightarrow 4.8\times10^{-7}$; $\eta=4 \Rightarrow 9.5\times10^{-7}$
+
+This bound is conservative: it assumes worst-case uniform mass across $[-\eta, \eta]$. Since $e \sim \text{CBD}(\eta)$ concentrates more mass near zero, the true boundary-crossing probability is strictly smaller in practice.
 
 By a standard coupling argument, two random variables that agree except with probability $p$ have total variation distance at most $p$. Applying this to the coupling between the true joint distribution of $(e \bmod m, kq \bmod m)$ and the independent product distribution assumed in the convolution step below yields:
 $$\left| \delta\big(P(e_{\text{effective}}), U\big) - \delta\big(P_e \circledast P_{kq}, U\big) \right| \le \frac{2\eta}{q}$$

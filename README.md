@@ -23,6 +23,7 @@ Release oficial v2.0.0 del framework teórico y experimental para el análisis d
    - Reducción modular real e imprecisa (`exact` vs `biased`).
    - Empaquetamiento de bits/bytes (`coefficient_pack/unpack`).
    - **Conclusión de Auditoría**: Las transformaciones de implementación preservan la independencia estadística del ruido y no filtran información mutua sobre el secreto ($I(S; \text{Salida}) \approx 0.0000$ bits).
+   - *Nota metodológica*: a diferencia de `Decompose`/`Power2Round` en ML-DSA, las transformaciones de Kyber operan sobre espacios de estados nativamente acotados ($\le 2^{10}$ estados), por lo que $N \gg K_{XY}$ se satisface sin necesidad de agrupamiento en binios, test de permutación ni corrección BH-FDR.
 5. **Auditoría de Funciones de Redondeo, Descomposición y Pistas en ML-DSA / Dilithium (FIPS 204)**:
    - **`Decompose`**: Verificación empírica de que el residuo de parte baja $r_0 \in [-\gamma_2, \gamma_2]$ generado durante la firma no filtra información sobre la clave secreta $S_1$ ($I(S_1; r_0) = 0.000000$ bits) para todos los niveles de seguridad.
    - **`Power2Round`**: Demostración de que el residuo truncado de la clave pública $t_0 \in [-4095, 4096]$ ($d=13$) actúa como ruido discreto uniforme de $13$ bits, sin revelar información mutua apreciable respecto a $S_1$ ni $S_2$ ($I(S; t_0) \le 0.0031$ bits) y superando la prueba de ajuste de Chi-Cuadrado ($\chi^2 p\text{-valor} > 0.57$).
