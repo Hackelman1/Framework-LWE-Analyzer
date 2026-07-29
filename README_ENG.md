@@ -13,10 +13,10 @@ Official v2.0.0 release of the theoretical and experimental framework for analyz
 
 ## 1. Scope & Key Discoveries
 
-1. **LWE Modular Uniformization Theorem**: Contractive statistical distance bound under circular convolution:
+1. **LWE Modular Uniformization Theorem (Conditional Mathematical Theorem)**: Contractive statistical distance bound under circular convolution, subject to the structural independence condition ($e \bmod m \perp\!\!\!\perp k q \bmod m$) guaranteed by the high-entropy masking of $A s \bmod q$:
    $$\delta(P(e_{\text{effective}}), U(\mathbb{Z}_m)) \le \delta(P(k q \bmod m), U(\mathbb{Z}_m))$$
 2. **Algebraic Criteria**: Complete effective noise uniformization requires $\gcd(q, m) = 1$ and sufficient dispersion of the modular wrapping term $k = \lfloor (A s + e)/q \rfloor \bmod m$.
-3. **Noise-Free Proof ($e=0$)**: Mathematical and empirical proof that uniformization is driven intrinsically by the wrapping term $k$, independently of the noise magnitude $e$.
+3. **Noise-Free Proof ($e=0$)**: Conditional mathematical and empirical proof that uniformization is driven intrinsically by the wrapping term $k$, independently of the noise magnitude $e$, under the structural independence condition ($e \bmod m \perp\!\!\!\perp k q \bmod m$).
 4. **Audit of Real Implementation Transformations in ML-KEM / Kyber (FIPS 203)**:
    - Compression ($\text{Compress}_d$) and Decompression ($\text{Decompress}_d$).
    - Round-trip rounding error noise.
@@ -27,6 +27,7 @@ Official v2.0.0 release of the theoretical and experimental framework for analyz
    - **`Decompose`**: Empirical verification that the low-part residue $r_0 \in [-\gamma_2, \gamma_2]$ generated during signing leaks no information about the secret key $S_1$ ($I(S_1; r_0) = 0.000000$ bits) across all security levels.
    - **`Power2Round`**: Demonstration that the truncated public key residue $t_0 \in [-4095, 4096]$ ($d=13$) acts as 13-bit discrete uniform noise, revealing no appreciable mutual information regarding $S_1$ or $S_2$ ($I(S; t_0) \le 0.0031$ bits) and passing the Chi-Square goodness-of-fit test ($\chi^2 p\text{-value} > 0.57$).
    - **`MakeHint` / `UseHint`**: Verification that binary hint vectors $h \in \{0, 1\}^K$ transmitted publicly in digital signatures leak no mutual information about secret keys ($I(S_1; h) = I(S_2; h) = 0.000000$ bits) and exhibit a spatial homogeneous distribution ($\chi^2 p\text{-value} > 0.69$).
+6. **Stochastic Statistical Audit Methodology**: Stochastic evaluation via fixed binning ($B = 256$), permutation tests ($P = 500$, seed = 42) with add-one smoothing (Phipson & Smyth, 2010), internal Bonferroni aggregation for parameter sweeps, and global Benjamini-Hochberg multiplicity control (BH-FDR) over the $M = 23$ leakage hypotheses.
 
 ---
 
@@ -99,23 +100,23 @@ analyze_scheme(scheme="Kyber512", transformation="compression", parameters={"d":
 - `final_validation_report.md`: Technical validation report.
 - `*.png`: Robustness plots, uniformization heatmaps, and compression/rounding bias figures.
 
-### ML-DSA (FIPS 204) Statistical Audit Results — Sample $N = 500,000$
+### ML-DSA (FIPS 204) Statistical Audit Results — Sample $N = 500,000$ ($B = 256$, $P = 500$)
 
-| Scheme | Transformation | Parameters | Entropy $H$ (bits) | Max $H$ | $\chi^2$ $p$-value | $I(S_1; \text{out})$ | $I(S_2; \text{out})$ | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **ML-DSA-44** | `Decompose` | $\gamma_2=95232, \eta=2$ | $17.2347$ | $17.5392$ | $0.4364$ | $0.000000$ | $0.000000$ | **PASS** |
-| **ML-DSA-65/87** | `Decompose` | $\gamma_2=261888, \eta=4$ | $18.1350$ | $18.9986$ | $0.1689$ | $0.000000$ | $0.000000$ | **PASS** |
-| **ML-DSA-44** | `Power2Round` | $d=13, \eta=2$ | $12.9884$ | $13.0000$ | $0.9207$ | $0.000519$ | $0.001273$ | **PASS** |
-| **ML-DSA-65/87** | `Power2Round` | $d=13, \eta=4$ | $12.9882$ | $13.0000$ | $0.5779$ | $0.002707$ | $0.003116$ | **PASS** |
-| **ML-DSA-44** | `MakeHint` | $\gamma_2=95232, \eta=2$ | $0.0833$ | $1.0000$ | $0.8672$ | $0.000000$ | $0.000000$ | **PASS** |
-| **ML-DSA-65/87** | `MakeHint` | $\gamma_2=261888, \eta=4$ | $0.0258$ | $1.0000$ | $0.6950$ | $0.000000$ | $0.000000$ | **PASS** |
+| Scheme | Function | Parameters | Density $N/K_{XY}$ | $\chi^2$ $p$-value | $I_{\text{MM}}$ (bits) | Null Mean $\pm$ Std (bits) | Add-One $p$-value | Leakage FDR $q$-value | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **ML-DSA-44** | `Decompose` | $\gamma_2=95232, \eta=2$ | $390.6$ | $0.4364$ | $0.000000$ | $0.00118 \pm 0.00042$ | $0.4291$ | $0.5149$ | **PASS** |
+| **ML-DSA-65/87** | `Decompose` | $\gamma_2=261888, \eta=4$ | $217.0$ | $0.1689$ | $0.000000$ | $0.00214 \pm 0.00068$ | $0.4631$ | $0.5149$ | **PASS** |
+| **ML-DSA-44** | `Power2Round` | $d=13, \eta=2$ | $390.6$ | $0.9207$ | $0.000000$ | $0.00119 \pm 0.00041$ | $0.5130$ | $0.5149$ | **PASS** |
+| **ML-DSA-65/87** | `Power2Round` | $d=13, \eta=4$ | $217.0$ | $0.5779$ | $0.000000$ | $0.00212 \pm 0.00068$ | $0.4870$ | $0.5149$ | **PASS** |
+| **ML-DSA-44** | `MakeHint` | $\gamma_2=95232, \eta=2$ | $25000.0$ | $0.8672$ | $0.000000$ | $0.00002 \pm 0.00001$ | $0.6248$ | $0.6248$ | **PASS** |
+| **ML-DSA-65/87** | `MakeHint` | $\gamma_2=261888, \eta=4$ | $13888.8$ | $0.6950$ | $0.000000$ | $0.00003 \pm 0.00001$ | $0.5888$ | $0.6248$ | **PASS** |
 
 ---
 
 ## 6. What This Framework DOES and DOES NOT Prove
 
 - **DOES Prove**:
-  - Modular projections with $\gcd(q, m) = 1$ destroy the observable statistical structure of LWE, ML-KEM, and ML-DSA error terms.
+  - Modular projections with $\gcd(q, m) = 1$ destroy the observable statistical structure of the noise under the structural independence condition ($e \bmod m \perp\!\!\!\perp k q \bmod m$) guaranteed by the high-entropy masking of $A s \bmod q$.
   - Real implementation transformations of compression, rounding, decomposition, and hint generation in Kyber (FIPS 203) and ML-DSA (FIPS 204) preserve high uniformity and afford no statistical advantage to an adversary.
 - **DOES NOT Prove**:
   - Any cryptographic security break or key recovery vulnerability in standardized ML-KEM / Kyber (FIPS 203) or ML-DSA / Dilithium (FIPS 204).
