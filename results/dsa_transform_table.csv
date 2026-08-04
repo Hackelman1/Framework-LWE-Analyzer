@@ -1,3 +1,0 @@
-scheme,function,parameter,entropy_bits,max_entropy_bits,tvd,chi2_pvalue,mutual_info_s1,mutual_info_s2,status,num_samples
-ML-DSA-44,Power2Round,"d=13, eta=2",10.72812262839586,13.0,0.7840576171875,0.3731543142278508,0.0,0.0,PASS,2000
-ML-DSA-65/87,Power2Round,"d=13, eta=4",10.713745184644779,13.0,0.7855224609375,0.06325600152697199,0.0,0.0,PASS,2000
