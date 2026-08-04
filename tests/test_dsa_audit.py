@@ -3,7 +3,8 @@ import numpy as np
 from transformations.dsa.audit_utils import (
     apply_fdr_control, 
     aggregate_sweep_p_value, 
-    compute_mutual_information_robust
+    compute_mutual_information_robust,
+    choose_num_bins,
 )
 
 class TestDSAAuditUtils(unittest.TestCase):
@@ -51,6 +52,16 @@ class TestDSAAuditUtils(unittest.TestCase):
         )
         # Con P=100, el mínimo p-valor alcanzable es 1/101 ≈ 0.0099
         self.assertGreater(stats["empirical_p_value"], 0.0)
+
+    def test_choose_num_bins_insufficient_density_raises_value_error(self):
+        """Salvaguarda de regresión: Verifica que choose_num_bins lance ValueError 
+        cuando N es insuficiente para K_X frente a target_density=50.0.
+        """
+        # Con K_X = 4096 y N = 500, la densidad alcanzable aun a 2 bins es 500 / (4096*2) = 0.061 < 50.0
+        with self.assertRaises(ValueError) as ctx:
+            choose_num_bins(K_X=4096, native_K_Y=65536, N=500, target_density=50.0)
+        
+        self.assertIn("Densidad objetivo inalcanzable", str(ctx.exception))
 
 if __name__ == "__main__":
     unittest.main()

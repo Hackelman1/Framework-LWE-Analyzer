@@ -20,21 +20,60 @@ def aggregate_sweep_p_value(p_values: list[float] | np.ndarray) -> float:
     return min(K * p_min, 1.0)
 
 
+def choose_num_bins(
+    K_X: int, native_K_Y: int, N: int, target_density: float = 50.0
+) -> int | None:
+    """Calcula el número dinámico de bines para garantizar una densidad mínima
+    objetivo de muestras por celda en el espacio conjunto (target_density >= 50).
+    Si la densidad nativa ya es >= target_density, devuelve None (sin agrupamiento).
+    Valida y señala explícitamente si la densidad objetivo es inalcanzable solo agrupando Y.
+    """
+    total_cells = K_X * native_K_Y
+    if total_cells == 0:
+        return None
+    native_density = N / total_cells
+    if native_density >= target_density:
+        return None  # Resolución nativa completa sin binning
+
+    max_bins = max(2, int(N / (target_density * K_X)))
+    chosen_bins = min(native_K_Y, max_bins)
+    achieved_density = N / (K_X * chosen_bins)
+
+    if achieved_density < target_density:
+        raise ValueError(
+            f"Densidad objetivo inalcanzable solo agrupando Y: K_X={K_X} ya excede "
+            f"el límite para N={N} a target_density={target_density} (densidad alcanzada={achieved_density:.2f} < {target_density}). "
+            f"Aumenta el número de muestras N o ajusta los parámetros de estado del experimento."
+        )
+
+    return chosen_bins
+
+
 def compute_mutual_information_robust(
     s_vec: np.ndarray,
     out_vec: np.ndarray,
-    num_bins: int = 256,
+    num_bins: int | None = 256,
     n_permutations: int = 500,
     seed: int = 42,
 ) -> dict:
-    """Calcula Información Mutua con B=256, corrección Miller-Madow (bits),
-    test de permutación add-one (Phipson & Smyth, 2010) y distribución nula con signo.
+    """Calcula Información Mutua con B bines adaptativos o resolución nativa (num_bins=None),
+    corrección Miller-Madow (bits), test de permutación add-one (Phipson & Smyth, 2010)
+    y distribución nula con signo.
     """
     rng = np.random.default_rng(seed)
+    s_vec = np.asarray(s_vec).flatten()
+    out_vec = np.asarray(out_vec).flatten()
+
+    # Validar que las longitudes sean strictly idénticas (evita auto-relleno espurio)
+    if len(s_vec) != len(out_vec):
+        raise ValueError(
+            f"s_vec (N={len(s_vec)}) y out_vec (N={len(out_vec)}) deben tener exactamente la misma longitud — "
+            f"verifica el protocolo de muestreo del experimento que llama a esta función."
+        )
     N = len(s_vec)
 
-    # 1. Agrupamiento por binios fijos (B = 256)
-    if len(np.unique(out_vec)) > num_bins:
+    # 1. Agrupamiento adaptativo seguro ante NoneType
+    if num_bins is not None and len(np.unique(out_vec)) > num_bins:
         min_val, max_val = np.min(out_vec), np.max(out_vec)
         bins = np.linspace(min_val, max_val, num_bins + 1)
         out_binned = np.digitize(out_vec, bins) - 1
@@ -101,7 +140,8 @@ def compute_mutual_information_robust(
         "empirical_p_value": empirical_p_value,
         "percentile_vs_null": percentile_vs_null,
         "k_xy_cells": int(K_XY),
-        "samples_per_cell": float(N / K_XY),
+        "samples_per_cell": float(N / K_XY) if K_XY > 0 else 0.0,
+        "num_bins_used": int(K_Y),
         "n_permutations": n_permutations,
         "seed": seed,
     }

@@ -13,7 +13,7 @@ In this work, we prove the **LWE Modular Uniformization Theorem** and establish 
 $$\delta(P(e_{\text{effective}}), U(\mathbb{Z}_m)) \le \delta(P(k q \bmod m), U(\mathbb{Z}_m))$$
 We prove that uniformization of the effective noise $e_{\text{effective}} = (b_m - A_m s_m) \bmod m$ depends on two explicit criteria: an algebraic support condition ($\gcd(q, m) = 1$) and a probabilistic condition on the modular wrapping term $k = \lfloor (A s + e)/q \rfloor \bmod m$. Furthermore, we demonstrate under a noise-free LWE setting ($e=0$) that statistical uniformization is an intrinsic property generated solely by the modular wrapping term. 
 
-We validate our analytical findings across a comprehensive suite of 23 experimental evaluations (Experiments A–W). Finally, we extend the framework to perform a comprehensive empirical statistical audit of implementation-level transformations in both **ML-KEM (FIPS 203)** and **ML-DSA (FIPS 204)**. Evaluating $N = 500,000$ samples with Miller-Madow bias-corrected mutual information, we demonstrate that actual implementation operators—including compression, rounding, coefficient packing, decomposition (`Decompose`), public key rounding (`Power2Round`), and hint bit generation (`MakeHint` / `UseHint`)—preserve statistical noise independence and leak zero mutual information regarding secret key vectors ($I(S; \text{Output}) \approx 0.000000$ bits).
+We validate our analytical findings across a canonical pool of 23 FDR-controlled experimental evaluations (16 LWE Experiments A–P, 4 ML-KEM Experiments T–W, and 3 ML-DSA FIPS 204 Experiments). Exploratory evaluations Q, R, and S complement the framework by analyzing marginal coefficient uniformization and structural heatmaps outside the multiplicity control pool. Finally, we extend the framework to perform a comprehensive empirical statistical audit of implementation-level transformations in both **ML-KEM (FIPS 203)** and **ML-DSA (FIPS 204)**. Evaluating $N = 500,000$ samples with Miller-Madow bias-corrected mutual information, we demonstrate that actual implementation operators—including compression, rounding, coefficient packing, decomposition (`Decompose`), public key rounding (`Power2Round`), and hint bit generation (`MakeHint` / `UseHint`)—preserve statistical noise independence and leak zero mutual information regarding secret key vectors ($I(S; \text{Output}) \approx 0.000000$ bits).
 
 ---
 
@@ -37,7 +37,7 @@ where $s_1 \in R_q^l$ and $s_2 \in R_q^k$ are secret and noise vectors, $A \left
 ML-DSA operations take place over the primary modulus $q = 8380417 = 2^{23} - 2^{13} + 1$:
 - **Public Key Truncation ($d$)**: $d = 13$ bits, with residue space $2^d = 8192$.
 - **Decomposition Parameter ($\gamma_2$)**: $\gamma_2 = 95232 = (q-1)/88$ (ML-DSA-44) or $\gamma_2 = 261888 = (q-1)/32$ (ML-DSA-65/87).
-- **Masking Bound ($\gamma_1$)**: $\gamma_1 = 2^{17} = 131072$ (ML-DSA-44) or $\gamma_1 = 2^{19} = 524288$ (ML-DSA-65/87).
+- **Masking Bound ($\gamma_1$)**: $\gamma_1 = 2^{17} = 131072$ (ML-DSA-44) or $\gamma_1 = 524288$ (ML-DSA-65/87).
 
 ---
 
@@ -73,7 +73,7 @@ For the parameter sets audited in this work, this probability is:
 - ML-KEM/Kyber ($q=3329$): $\eta=2 \Rightarrow 1.2\times10^{-3}$; $\eta=3 \Rightarrow 1.8\times10^{-3}$
 - ML-DSA ($q=8380417$): $\eta=2 \Rightarrow 4.8\times10^{-7}$; $\eta=4 \Rightarrow 9.5\times10^{-7}$
 
-This bound is conservative: it assumes worst-case uniform mass across $[-\eta, \eta]$. Since $e \sim \text{CBD}(\eta)$ concentrates more mass near zero, the true boundary-crossing probability is strictly smaller in practice.
+This analytical bound $2\eta/q$ is directly verified empirically in **Experiment A**, which measures mutual information $I(k \bmod m; e \bmod m)$ via permutation testing over paired envelope and CBD error samples.
 
 By a standard coupling argument, two random variables that agree except with probability $p$ have total variation distance at most $p$. Applying this to the coupling between the true joint distribution of $(e \bmod m, kq \bmod m)$ and the independent product distribution assumed in the convolution step below yields:
 $$\left| \delta\big(P(e_{\text{effective}}), U\big) - \delta\big(P_e \circledast P_{kq}, U\big) \right| \le \frac{2\eta}{q}$$
@@ -90,22 +90,24 @@ This proves that noise uniformization is driven **exclusively by the modular wra
 
 ---
 
-## 5. Theoretical LWE Experimental Validation (Experiments A–S)
-We conducted 19 experimental protocols on LWE projections:
-- **Experiment A–C**: CBD vs effective noise, ideal MLE success rate ($1/m^n$).
-- **Experiment D–F**: Exact conditional mutual information $I(S_m; B_m \mid A_m) = 0.0010$ bits, Miller-Madow independence tests.
-- **Experiment G–I**: Complete $q \times m$ matrix map and circular convolution verification.
-- **Experiment J–K**: Probabilistic analysis of $k \bmod m$ and conditional independence $I(k_m; s_m) = 0.000000$ bits.
-- **Experiment L–M**: Robustness under secret distributions (uniform, CBD, binomial, fixed) and noise distributions (CBD1-3, Gaussian, zero noise).
-- **Experiment N–O**: Scaling across secret dimensions $n \in [1..32]$ and exact direct Bayesian posterior attack ($H(S_m \mid A_m, B_m) \approx H(S_m)$).
-- **Experiment P**: Large-sample statistical scaling ($N = 10^3, 10^4, 10^5, 10^6$), verifying asymptotic convergence.
-- **Experiment Q–S**: Module-LWE / Kyber coefficient uniformization, $q \times m$ Kyber heatmap, and mutual information comparison across LWE, RLWE, and Module-LWE.
+## 5. Theoretical LWE Experimental Validation (Experiments A–P)
+We conducted 16 canonical experimental protocols on LWE projections:
+- **Experiment A**: Empirical verification of Theorem 4.2 measuring $I(k \bmod m; e \bmod m)$.
+- **Experiment B–C**: Secret leakage $I(s; b \bmod 6)$ across dimension sweeps $n \in \{2..5\}$ and sample counts $m \in \{4..64\}$.
+- **Experiment D–F**: Conditional mutual information $I(S_m; B_m \mid A_m) \equiv I(S_m; (A_m, B_m))$, Miller-Madow independence tests.
+- **Experiment G–I**: Complete $q \times m$ sensitivity map, subgroup constraints ($\gcd(q,m)>1$), and circular convolution verification.
+- **Experiment J–K**: Probabilistic analysis of $k \bmod m$ and multivariate wrap vector dependency $I(S_m; \mathbf{k}_m)$.
+- **Experiment L–M**: Robustness under secret distributions (uniform, CBD, binomial, ternary, fixed) and noise distributions (CBD1-3, Gaussian, zero noise).
+- **Experiment N–O**: Scaling across secret dimensions $n \in [1..32]$ and conditional entropy reduction $H(S_m) - H(S_m \mid A_m, B_m)$.
+- **Experiment P**: Large-sample statistical scaling ($N = 10^3, 10^4, 10^5$), verifying asymptotic convergence.
+
+Exploratory protocols **Q, R, and S** evaluate Kyber coefficient uniformization, $q \times m$ parameter heatmaps, and LWE/RLWE/Module-LWE structural comparisons outside the multiplicity correction pool.
 
 ---
 
 ## 6. Implementation-Level Transformations in ML-KEM (FIPS 203)
 
-While algebraic projections $\pi_m: \mathbb{Z}_q \to \mathbb{Z}_m$ model ideal mathematical abstractions, real cryptographic implementations of ML-KEM (FIPS 203) employ specific numerical and serialization transformations. We audited five concrete operations:
+While algebraic projections $\pi_m: \mathbb{Z}_q \to \mathbb{Z}_m$ model ideal mathematical abstractions, real cryptographic implementations of ML-KEM (FIPS 203) employ specific numerical and serialization transformations. We audited four concrete operations:
 1. **Coefficient Compression ($\text{Compress}_d$)**: Quantization mapping $x \in \mathbb{Z}_q \to \mathbb{Z}_{2^d}$ via $\lceil (2^d/q) x \rceil \bmod 2^d$.
 2. **Decompression ($\text{Decompress}_d$)**: Reconstruction mapping $y \in \mathbb{Z}_{2^d} \to \mathbb{Z}_q$ via $\lceil (q/2^d) y \rceil \bmod q$.
 3. **Rounding Noise**: Round-trip error $\Delta = (\text{Decompress}_d(\text{Compress}_d(x)) - x) \bmod q$.
@@ -135,6 +137,8 @@ Permutation hypothesis tests are conducted on the $B = 256$ binned representatio
 
 $$p = \frac{1 + \sum_{i=1}^P \mathbb{I}\left(I_{\text{null, raw}}^{(i)} \ge I_{\text{MM, raw}}\right)}{P + 1}$$
 
+*Note on Parametric Sweep Permutations ($P_{\text{sweep}} = 50$)*: Single-instance hypothesis tests employ $P = 500$ permutations. For parametric sweeps containing multiple subconfigurations (such as dimension sweeps $n \in [2..5]$ or sample sweeps $m \in [4..64]$), permutation tests are evaluated at $P_{\text{sweep}} = 50$ per subconfiguration due to computational constraints. The minimum achievable add-one $p$-value for any subconfiguration is $1/51 \approx 0.0196$, which is subsequently aggregated via internal Bonferroni correction prior to global Benjamini-Hochberg FDR control across the $M = 23$ hypothesis family.
+
 ### 7.2 Multiplicity Control, Internal Bonferroni Sweep Aggregation, and FDR Convergence
 We strictly separate statistical tests into two independent hypothesis families:
 1. **Marginal Uniformity Family ($\mathbb{H}_0^{\text{uniformity}}$)**: Evaluated via goodness-of-fit $\chi^2$ tests ($P_Y = U$).
@@ -144,7 +148,7 @@ For protocols featuring internal parameter sweeps across $K$ subconfigurations (
 
 $$\tilde{p}_m = \min\left(K_m \cdot \min_{k \in \{1\dots K_m\}} p_{m, k}, \; 1.0\right)$$
 
-By the union bound, $P(\tilde{p}_m \le t) \le t$, fulfilling the exact stochastic conservatism required by Benjamini-Hochberg (BH) FDR control. This bounds the global information leakage family to $M = 23$ valid canonical $p$-values.
+By the union bound, $P(\tilde{p}_m \le t) \le t$, fulfilling the exact stochastic conservatism required by Benjamini-Hochberg (BH) FDR control. This bounds the global information leakage family to $M = 23$ valid canonical $p$-values (16 LWE + 4 ML-KEM + 3 ML-DSA).
 
 Under the global null hypothesis ($\mathbb{H}_0^{\text{global}}$: complete absence of leakage across all audited transformations), any rejection is by definition a false discovery ($V = R$). Consequently, the FDR mathematically collapses to the Family-Wise Error Rate (FWER):
 
@@ -154,6 +158,8 @@ An outcome is declared **PASS** if the adjusted $q$-value satisfies $q > 0.05$.
 
 ### 7.3 Consolidated ML-DSA Audit Benchmark
 Table 1 presents the empirical audit metrics for FIPS 204 under $B = 256$ fixed binning, $P = 500$ permutation testing, and Benjamini-Hochberg FDR control across the $M=23$ leakage hypothesis family ($N = 500,000$).
+
+*Note on ML-DSA Aggregation*: The $q$-values for ML-DSA operations (`Decompose`, `Power2Round`, `MakeHint`) represent the consolidated $p$-value resulting from internal Bonferroni aggregation ($K=2$, $\tilde{p} = \min(2 \cdot \min(p_{44}, p_{65}), 1.0)$) across security levels ML-DSA-44 and ML-DSA-65/87 prior to global FDR adjustment, explaining why both security variants share identical adjusted $q$-values.
 
 **Table 1**: Consolidated statistical audit metrics for FIPS 204 transformations ($N = 500,000$, $B = 256$, $P = 500$ permutations, add-one smoothed $p$-values, Benjamini-Hochberg leakage $q$-values, seed $= 42$).
 
@@ -176,8 +182,9 @@ Our findings demonstrate that projecting LWE/M-LWE samples to $\mathbb{Z}_m$ whe
 ## 9. Limitations and Methodological Considerations
 1. **Does not constitute a security break** of ML-KEM, ML-DSA, or Falcon.
 2. **Conditional Independence Criterion**: The mathematical contraction theorem relies on modular boundary decoupling of $A s \bmod q$ to bound the total variation coupling distance to independent product distributions by $2\eta/q$ (Section 4.2).
-3. **Internal Bonferroni Aggregation and Global FDR Control**: Parameter sweeps across $K$ subconfigurations are aggregated via internal Bonferroni adjustment ($\tilde{p}_m = \min(K_m \cdot p_{\min}, 1.0)$), ensuring stochastically conservative inputs ($P(\tilde{p} \le t) \le t$) across the $M = 23$ leakage hypothesis family. Benjamini-Hochberg FDR control is applied globally to this family, converging to exact FWER control under $\mathbb{H}_0^{\text{global}}$. Marginal uniformity tests ($\chi^2$) form a separate family and are reported independently. All adjusted leakage $q$-values exceed $0.50$, confirming zero statistical leakage.
+3. **Internal Bonferroni Aggregation and Global FDR Control**: Parameter sweeps across $K$ subconfigurations are aggregated via internal Bonferroni adjustment ($\tilde{p}_m = \min(K_m \cdot p_{\min}, 1.0)$), ensuring stochastically conservative inputs ($P(\tilde{p} \le t) \le t$) across the $M = 23$ leakage hypothesis family (16 LWE + 4 ML-KEM + 3 ML-DSA). Benjamini-Hochberg FDR control is applied globally to this family, converging to exact FWER control under $\mathbb{H}_0^{\text{global}}$. Marginal uniformity tests ($\chi^2$) form a separate family and are reported independently. All adjusted leakage $q$-values exceed $0.50$, confirming zero statistical leakage.
 4. **Statistical Threat Model**: Restricted to observable data distributions and algorithmic outputs. Physical side-channel attacks (DPA, SPA, microarchitectural timing) remain outside this mathematical data-model audit.
+5. **Methodological Power Limitation in Exp K ($n=4$)**: For the multivariate evaluation in dimension $n=4$, the power to characterize fine-grained cell-level leakage is bounded by available sample size ($N=500,000$). The PASS result reflects absence of detectable leakage at the achievable adaptive binning resolution ($B=7$), not an exhaustive characterization of the complete 1296 native states.
 
 ---
 

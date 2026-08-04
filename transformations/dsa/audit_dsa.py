@@ -86,16 +86,45 @@ def audit_dsa_make_hint(s1_vec: np.ndarray, h_vec: np.ndarray, gamma2: int = 952
     }
 
 
-def run_dsa_suite() -> list[dict[str, Any]]:
-    """Ejecuta la suite de auditoría ML-DSA / FIPS 204 (3 Experimentos: Decompose, Power2Round, MakeHint)."""
-    res_dec = audit_decompose_transformation(gamma2=95232, eta=2, num_samples=10000, seed=42, export_csv=False)
-    res_dec["experiment_id"] = "DSA_Decompose_g2_95232"
+def run_dsa_suite(num_samples: int = 500000, seed: int = 42) -> list[dict[str, Any]]:
+    """Ejecuta la suite de auditoría ML-DSA / FIPS 204 (3 Experimentos Canónicos: Decompose, Power2Round, MakeHint)
+    evaluando tanto ML-DSA-44 como ML-DSA-65/87 con N=500,000, B=256 y P=500 permutaciones.
+    """
+    from transformations.dsa.audit_utils import aggregate_sweep_p_value
 
-    res_p2r = audit_power2round_transformation(d=13, eta=2, num_samples=10000, seed=42, export_csv=False)
-    res_p2r["experiment_id"] = "DSA_Power2Round_d_13"
+    # 1. Decompose
+    res_dec_44 = audit_decompose_transformation(q=8380417, gamma2=95232, eta=2, num_samples=num_samples, seed=seed, export_csv=True)
+    res_dec_65 = audit_decompose_transformation(q=8380417, gamma2=261888, eta=4, num_samples=num_samples, seed=seed, export_csv=True)
+    p_dec = float(aggregate_sweep_p_value([res_dec_44["empirical_p_value"], res_dec_65["empirical_p_value"]]))
+    res_dec = {
+        "experiment_id": "DSA_Decompose",
+        "empirical_p_value": p_dec,
+        "mi_mm_display": max(res_dec_44.get("mi_mm_display", 0.0), res_dec_65.get("mi_mm_display", 0.0)),
+        "sub_results": [res_dec_44, res_dec_65]
+    }
 
-    res_hnt = audit_hint_transformation(gamma2=95232, eta=2, num_samples=10000, seed=42, export_csv=False)
-    res_hnt["experiment_id"] = "DSA_MakeHint_g2_95232"
+    # 2. Power2Round
+    res_p2r_44 = audit_power2round_transformation(q=8380417, d=13, eta=2, num_samples=num_samples, seed=seed, export_csv=True)
+    res_p2r_65 = audit_power2round_transformation(q=8380417, d=13, eta=4, num_samples=num_samples, seed=seed, export_csv=True)
+    p_p2r = float(aggregate_sweep_p_value([res_p2r_44["empirical_p_value"], res_p2r_65["empirical_p_value"]]))
+    res_p2r = {
+        "experiment_id": "DSA_Power2Round",
+        "empirical_p_value": p_p2r,
+        "mi_mm_display": max(res_p2r_44.get("mi_mm_display", 0.0), res_p2r_65.get("mi_mm_display", 0.0)),
+        "sub_results": [res_p2r_44, res_p2r_65]
+    }
+
+    # 3. MakeHint
+    res_hnt_44 = audit_hint_transformation(q=8380417, gamma2=95232, eta=2, gamma1=131072, num_samples=num_samples, seed=seed, export_csv=True)
+    res_hnt_65 = audit_hint_transformation(q=8380417, gamma2=261888, eta=4, gamma1=524288, num_samples=num_samples, seed=seed, export_csv=True)
+    p_hnt = float(aggregate_sweep_p_value([res_hnt_44["empirical_p_value"], res_hnt_65["empirical_p_value"]]))
+    res_hnt = {
+        "experiment_id": "DSA_MakeHint",
+        "empirical_p_value": p_hnt,
+        "mi_mm_display": max(res_hnt_44.get("mi_mm_display", 0.0), res_hnt_65.get("mi_mm_display", 0.0)),
+        "sub_results": [res_hnt_44, res_hnt_65]
+    }
 
     return [res_dec, res_p2r, res_hnt]
+
 

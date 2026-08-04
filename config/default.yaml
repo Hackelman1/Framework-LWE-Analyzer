@@ -1,4 +1,18 @@
-# Configuración Centralizada del Framework LWE Modular Projection (v1.0)
+# Configuración Centralizada del Framework LWE Modular Projection (v2.0)
+
+mode: "full_paper" # Opciones: "fast_demo" | "full_paper"
+
+modes:
+  fast_demo:
+    N: 10000
+    B: 256
+    P: 20
+    seed: 42
+  full_paper:
+    N: 500000
+    B: 256
+    P: 500
+    seed: 42
 
 q: 3329
 eta: 2
@@ -22,3 +36,4 @@ experiments:
     - 10000
     - 100000
     - 1000000
+

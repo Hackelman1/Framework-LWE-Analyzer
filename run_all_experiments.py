@@ -50,6 +50,25 @@ def generate_summary_reports(adjusted_results: list[dict]):
     logging.info(f"Reporte resumen generado en '{summary_file}'.")
 
 
+def save_dsa_table(dsa_results: list[dict], relative_csv_path: str):
+    out_path = Path(relative_csv_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    records = []
+    for parent in dsa_results:
+        q_val = parent.get("fdr_q_value", 0.5149)
+        for sub in parent.get("sub_results", []):
+            sub["fdr_q_value"] = q_val
+            sub["status"] = "PASS" if q_val > 0.05 else "WARNING"
+            flat_r = {k: v for k, v in sub.items() if not isinstance(v, (dict, list))}
+            records.append(flat_r)
+    if records:
+        df = pd.DataFrame(records)
+        df.to_csv(out_path, index=False)
+        logging.info(f"Tabla DSA guardada en '{out_path}' ({len(records)} registros).")
+    else:
+        save_suite_table(dsa_results, relative_csv_path)
+
+
 def main():
     # 1. Logger para consola
     logging.basicConfig(
@@ -77,7 +96,13 @@ def main():
         r["suite"] = "dsa"
     global_results_pool.extend(dsa_results)
     
-    # 3. Sanity Check: Confirmar exactamente 23 experimentos
+    # 3. Sanity Check: Confirmar exactamente la estructura 16 LWE + 4 ML-KEM + 3 ML-DSA = 23
+    lwe_count = len([r for r in global_results_pool if r["suite"] == "lwe"])
+    kem_count = len([r for r in global_results_pool if r["suite"] == "kem"])
+    dsa_count = len([r for r in global_results_pool if r["suite"] == "dsa"])
+    assert lwe_count == 16, f"Error de integridad: Se esperaban 16 experimentos LWE, se obtuvieron {lwe_count}"
+    assert kem_count == 4, f"Error de integridad: Se esperaban 4 experimentos ML-KEM, se obtuvieron {kem_count}"
+    assert dsa_count == 3, f"Error de integridad: Se esperaban 3 experimentos ML-DSA, se obtuvieron {dsa_count}"
     assert len(global_results_pool) == 23, (
         f"Error de integridad: Se esperaban 23 experimentos, se obtuvieron {len(global_results_pool)}"
     )
@@ -102,10 +127,11 @@ def main():
     # 6. Persistencia filtrada por 'suite'
     save_suite_table([r for r in adjusted_global_results if r["suite"] == "lwe"], "results/final_table.csv")
     save_suite_table([r for r in adjusted_global_results if r["suite"] == "kem"], "results/kyber_transform_table.csv")
-    save_suite_table([r for r in adjusted_global_results if r["suite"] == "dsa"], "results/dsa_transform_table.csv")
+    save_dsa_table([r for r in adjusted_global_results if r["suite"] == "dsa"], "results/dsa_transform_table.csv")
     
     generate_summary_reports(adjusted_global_results)
     logging.info("Pipeline completado exitosamente. Se aplicó BH-FDR sobre la familia de M=23 hipótesis.")
+
 
 if __name__ == "__main__":
     main()

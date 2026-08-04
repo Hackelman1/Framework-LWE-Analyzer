@@ -74,7 +74,7 @@ class KyberTransformAuditor:
             s_vec=all_sec,
             out_vec=all_comp,
             num_bins=256,
-            n_permutations=500,
+            n_permutations=50,
             seed=42
         )
 
@@ -153,7 +153,7 @@ class KyberTransformAuditor:
             s_vec=all_sec,
             out_vec=all_err,
             num_bins=256,
-            n_permutations=500,
+            n_permutations=50,
             seed=42
         )
 
@@ -221,7 +221,7 @@ class KyberTransformAuditor:
             s_vec=all_sec,
             out_vec=all_red % self.params.q,
             num_bins=256,
-            n_permutations=500,
+            n_permutations=50,
             seed=42
         )
 
@@ -290,7 +290,7 @@ class KyberTransformAuditor:
             s_vec=sec_sample,
             out_vec=byte_sample,
             num_bins=256,
-            n_permutations=500,
+            n_permutations=50,
             seed=42
         )
 

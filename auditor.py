@@ -34,7 +34,7 @@ class SchemeAuditor:
         if parameters is None:
             parameters = {}
 
-        # Si se solicita una transformación real de Kyber
+        # Si se solicita una transformación real de Kyber o ML-DSA
         if transformation in ["compression", "rounding", "modular_reduction", "pack_unpack"]:
             auditor = KyberTransformAuditor(params=params, seed=42)
             d = parameters.get('d', 10)
@@ -64,6 +64,35 @@ class SchemeAuditor:
             report.append(f"  Statistical distance: {audit_res.get('statistical_distance', 0.0):.6f}")
             report.append(f"  Mutual information: {audit_res.get('mutual_information', 0.0):.6f} bits")
             report.append(f"  Bayesian attacker gain: {audit_res.get('bayesian_attacker_gain', 0.0):.6f}")
+            report.append(f"Security interpretation: {audit_res['interpretation']}")
+
+            audit_res['formatted_report'] = "\n".join(report)
+            return audit_res
+
+        elif transformation in ["decompose", "power2round", "make_hint", "hint"]:
+            gamma2 = parameters.get('gamma2', 95232)
+            eta = parameters.get('eta', 2)
+            d = parameters.get('d', 13)
+            num_samples = parameters.get('num_samples', trials if trials >= 1000 else 10000)
+
+            if transformation == "decompose":
+                from transformations.dsa.decompose import audit_decompose_transformation
+                audit_res = audit_decompose_transformation(q=8380417, gamma2=gamma2, eta=eta, num_samples=num_samples, seed=42)
+            elif transformation == "power2round":
+                from transformations.dsa.power2round import audit_power2round_transformation
+                audit_res = audit_power2round_transformation(q=8380417, d=d, eta=eta, num_samples=num_samples, seed=42)
+            else:
+                from transformations.dsa.hint import audit_hint_transformation
+                audit_res = audit_hint_transformation(q=8380417, gamma2=gamma2, eta=eta, num_samples=num_samples, seed=42)
+
+            report = []
+            report.append(f"Scheme: {audit_res.get('scheme', 'ML-DSA')} (q=8380417)")
+            report.append(f"Transformation: FIPS 204 Operation ({transformation})")
+            report.append(f"Noise & Entropy analysis:")
+            report.append(f"  Entropy: {audit_res.get('entropy_bits', 0.0):.4f} / {audit_res.get('max_entropy_bits', 0.0):.4f} bits")
+            report.append(f"  Chi-Square p-value: {audit_res.get('chi2_pvalue', 0.0):.4f}")
+            report.append(f"  Empirical Add-One p-value: {audit_res.get('empirical_p_value', 0.0):.4f}")
+            report.append(f"  Mutual Information: {audit_res.get('mi_mm_display', 0.0):.6f} bits")
             report.append(f"Security interpretation: {audit_res['interpretation']}")
 
             audit_res['formatted_report'] = "\n".join(report)
